@@ -9,6 +9,7 @@
 <url><loc>https://gempp.cl/csemGT/reference/coef.csem.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/csemGT-package.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/csem_gt.html</loc></url>
+<url><loc>https://gempp.cl/csemGT/reference/csem_palette.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-apply_smoother.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-collapse_to_score.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-compute_global_stats.html</loc></url>
@@ -16,6 +17,9 @@
 <url><loc>https://gempp.cl/csemGT/reference/dot-gt_add_bootstrap_se.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-item_bootstrap.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-person_bootstrap.html</loc></url>
+<url><loc>https://gempp.cl/csemGT/reference/dot-plot_csem_single.html</loc></url>
+<url><loc>https://gempp.cl/csemGT/reference/dot-resolve_plot_columns.html</loc></url>
+<url><loc>https://gempp.cl/csemGT/reference/dot-resolve_plot_theme.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-restore_seed.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-set_seed_restoring.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-validate_args.html</loc></url>
@@ -26,6 +30,7 @@
 <url><loc>https://gempp.cl/csemGT/reference/index.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/is.csem.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/new_csem.html</loc></url>
+<url><loc>https://gempp.cl/csemGT/reference/plot.csem.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/print.csem.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/print.summary.csem.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/summary.csem.html</loc></url>

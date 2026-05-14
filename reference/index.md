@@ -11,8 +11,12 @@
 - [`csem_gt()`](https://gempp.cl/csemGT/reference/csem_gt.md) :
   Conditional standard errors of measurement under Generalizability
   Theory
+- [`csem_palette()`](https://gempp.cl/csemGT/reference/csem_palette.md)
+  : The csemGT colour palette
 - [`is.csem()`](https://gempp.cl/csemGT/reference/is.csem.md) : Test
   whether an object is a \`csem\` object
+- [`plot(`*`<csem>`*`)`](https://gempp.cl/csemGT/reference/plot.csem.md)
+  : Plot a \`csem\` object
 - [`print(`*`<csem>`*`)`](https://gempp.cl/csemGT/reference/print.csem.md)
   : Print a \`csem\` object
 - [`print(`*`<summary.csem>`*`)`](https://gempp.cl/csemGT/reference/print.summary.csem.md)
