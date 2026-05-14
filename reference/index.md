@@ -15,3 +15,7 @@
   whether an object is a \`csem\` object
 - [`print(`*`<csem>`*`)`](https://gempp.cl/csemGT/reference/print.csem.md)
   : Print a \`csem\` object
+- [`print(`*`<summary.csem>`*`)`](https://gempp.cl/csemGT/reference/print.summary.csem.md)
+  : Print a \`summary.csem\` object
+- [`summary(`*`<csem>`*`)`](https://gempp.cl/csemGT/reference/summary.csem.md)
+  : Summarise a \`csem\` object
