@@ -6,7 +6,8 @@
 \usage{
 .item_bootstrap(
   data,
-  X,
+  vc,
+  n_items_D = NULL,
   R = 1000L,
   seed = NULL,
   return_replicates = FALSE,
@@ -16,8 +17,14 @@
 \arguments{
 \item{data}{Numeric matrix \eqn{N \times J}.}
 
-\item{X}{Numeric vector of length \eqn{N}; conditioning value per
-person.}
+\item{vc}{Output of `.gt_variance_components(data)` — the variance
+components and per-person ingredients from the ORIGINAL sample
+(NOT from any bootstrap resample). Item bootstrap holds
+`sigma2_i` and `b_vec` fixed across replicates; this is the
+parity anchor against the legacy and `.ado` implementations.}
+
+\item{n_items_D}{Positive scalar; D-study number of items.
+Defaults to `ncol(data)`.}
 
 \item{R}{Integer; number of bootstrap replications. Default 1000.}
 

@@ -35,7 +35,8 @@ Suggests:
     testthat (>= 3.0.0),
     covr,
     spelling,
-    mirt
+    mirt,
+    haven
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 URL: https://github.com/rgempp/csemGT, https://gempp.cl/csemGT/

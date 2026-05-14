@@ -6,6 +6,8 @@
 \usage{
 .person_bootstrap(
   data,
+  vc,
+  n_items_D = NULL,
   X,
   paradigm = "gt",
   method = c("full", "large_a", "uncorrelated"),
@@ -19,12 +21,22 @@
 \arguments{
 \item{data}{Numeric matrix \eqn{N \times J}.}
 
+\item{vc}{Output of `.gt_variance_components(data)` from the ORIGINAL
+sample. Used only for dimensions (N, J) and for fall-back; each
+replicate recomputes its own vc internally.}
+
+\item{n_items_D}{Positive scalar; D-study number of items.
+Defaults to `ncol(data)`.}
+
 \item{X}{Numeric vector of length \eqn{N}; conditioning value per
-person.}
+person, used to aggregate replicate estimates by score level.}
 
 \item{paradigm}{Character; currently must be `"gt"`.}
 
-\item{method, error_type}{Resolved arguments of `csem_gt()`.}
+\item{method, error_type}{Resolved arguments of `csem_gt()`.
+Accepted for API compatibility with Sprint 1 tests but not used
+internally — the helper always returns all four estimators and
+downstream filtering is done by the orchestrator.}
 
 \item{R}{Integer; number of bootstrap replications. Default 1000.}
 
@@ -34,10 +46,11 @@ person.}
 per-person mean of the replicate estimates in component
 `$replicates`.}
 
-\item{verbose}{Logical; emit progress messages every 100 persons.}
+\item{verbose}{Logical.}
 }
 \value{
-A list with the same shape as `.item_bootstrap()`.
+A list with the same shape as `.item_bootstrap()` but
+  `type = "person"`.
 }
 \description{
 Resamples persons with replacement, refits the variance components,

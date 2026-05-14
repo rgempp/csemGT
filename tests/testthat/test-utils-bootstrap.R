@@ -1,32 +1,51 @@
 # Tests for R/utils-bootstrap.R
-# Covers .item_bootstrap(), .person_bootstrap(), .add_bootstrap_ci(),
-# .add_analytical_ci().
+# Covers .item_bootstrap(), .person_bootstrap(), .gt_add_bootstrap_se().
 #
-# The bootstrap functions depend on .gt_estimators_for_person() and
-# .gt_compute_per_person_for_boot() which are implemented in Sprint 2.
-# We mock those dependencies here so Sprint 1 tests exercise the
-# orchestration code without depending on the GT estimator algebra.
+# Sprint 2 sub-fase 4(b) refactor:
+# -------------------------------
+# - The Sprint 1 helpers .add_bootstrap_ci() and .add_analytical_ci() were
+#   removed; their tests are gone with them. SE attachment is now tested
+#   here (.gt_add_bootstrap_se()) and in test-utils-gt-longwide.R
+#   (.gt_add_analytical_se()); CI attachment is tested in
+#   test-utils-gt-longwide.R (.gt_add_ci()).
+# - .item_bootstrap() and .person_bootstrap() are unchanged from sub-fase 3;
+#   their tests are carried over verbatim.
+#
+# Mock targets:
+# - .item_bootstrap()   mocks .gt_compute_per_person_for_boot()
+#                       (signature (xrow, b_full, sigma2_i, n_items_D, N, B),
+#                       returns a B x 4 matrix).
+# - .person_bootstrap() mocks .gt_compute_per_person()
+#                       (signature (vc, n_items_D), returns an N x 4 matrix).
+
 
 # -------------------------------------------------------------------
-# .item_bootstrap (with mocked .gt_estimators_for_person)
+# .item_bootstrap (mocking .gt_compute_per_person_for_boot)
 # -------------------------------------------------------------------
 
 test_that(".item_bootstrap returns the expected list structure", {
-  fake_estimator <- function(data, p, X) {
-    # Deterministic, easy to verify: depends only on the person's
-    # row sum so resampled item sets produce different values.
-    s <- sum(data[p, ])
-    c(s, s * 0.9, s * 0.8, s * 0.7)
+  # Deterministic mock: depends on the resampled item indices via the
+  # data row passed in, so different replicates produce different
+  # values, matching the qualitative behaviour of the real helper.
+  fake_boot_helper <- function(xrow, b_full, sigma2_i, n_items_D, N, B) {
+    J <- length(xrow)
+    idx <- matrix(sample.int(J, B * J, replace = TRUE), B, J)
+    sums <- rowSums(matrix(xrow[idx], B, J))
+    cbind(absolute              = sums,
+          relative_full         = sums * 0.9,
+          relative_large_a      = sums * 0.8,
+          relative_uncorrelated = sums * 0.7)
   }
   testthat::local_mocked_bindings(
-    .gt_estimators_for_person = fake_estimator
+    .gt_compute_per_person_for_boot = fake_boot_helper
   )
 
   set.seed(123L)
   data <- matrix(rbinom(20 * 6, 1, 0.5), nrow = 20)
-  X    <- rowSums(data)
+  vc   <- .gt_variance_components(data)
 
-  out <- .item_bootstrap(data, X, R = 200L, seed = 42L)
+  out <- .item_bootstrap(data, vc, n_items_D = 6L,
+                         R = 200L, seed = 42L)
   expect_named(out, c("type", "R", "seed", "per_person_variance"))
   expect_equal(out$type, "item")
   expect_equal(out$R, 200L)
@@ -38,78 +57,96 @@ test_that(".item_bootstrap returns the expected list structure", {
 })
 
 test_that(".item_bootstrap respects seed: identical seeds -> identical output", {
-  fake_estimator <- function(data, p, X) {
-    s <- sum(data[p, ])
-    c(s, s + 1, s + 2, s + 3)
+  fake_boot_helper <- function(xrow, b_full, sigma2_i, n_items_D, N, B) {
+    J <- length(xrow)
+    idx <- matrix(sample.int(J, B * J, replace = TRUE), B, J)
+    sums <- rowSums(matrix(xrow[idx], B, J))
+    cbind(absolute = sums, relative_full = sums + 1,
+          relative_large_a = sums + 2, relative_uncorrelated = sums + 3)
   }
   testthat::local_mocked_bindings(
-    .gt_estimators_for_person = fake_estimator
+    .gt_compute_per_person_for_boot = fake_boot_helper
   )
 
   set.seed(1L)
   data <- matrix(rbinom(15 * 5, 1, 0.5), nrow = 15)
-  X    <- rowSums(data)
+  vc   <- .gt_variance_components(data)
 
-  o1 <- .item_bootstrap(data, X, R = 150L, seed = 7L)
-  o2 <- .item_bootstrap(data, X, R = 150L, seed = 7L)
+  o1 <- .item_bootstrap(data, vc, n_items_D = 5L, R = 150L, seed = 7L)
+  o2 <- .item_bootstrap(data, vc, n_items_D = 5L, R = 150L, seed = 7L)
   expect_equal(o1$per_person_variance, o2$per_person_variance)
 })
 
 test_that(".item_bootstrap restores .Random.seed exactly after run", {
-  fake_estimator <- function(data, p, X) c(0.1, 0.1, 0.1, 0.1)
-  testthat::local_mocked_bindings(
-    .gt_estimators_for_person = fake_estimator
-  )
-
-  set.seed(99L)
-  data <- matrix(rbinom(20, 1, 0.5), nrow = 5)
-  X    <- rowSums(data)
-  # Snapshot AFTER all data setup so the comparison isolates the
-  # bootstrap call's effect on the RNG state.
-  before <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  invisible(.item_bootstrap(data, X, R = 120L, seed = 11L))
-  after <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  expect_identical(before, after)
-})
-
-test_that(".item_bootstrap returns replicates when requested", {
-  fake_estimator <- function(data, p, X) {
-    s <- sum(data[p, ])
-    c(s, s, s, s)
-  }
-  testthat::local_mocked_bindings(
-    .gt_estimators_for_person = fake_estimator
-  )
-
-  set.seed(5L)
-  data <- matrix(rbinom(40, 1, 0.5), nrow = 10)
-  X    <- rowSums(data)
-  out  <- .item_bootstrap(data, X, R = 120L, seed = 2L,
-                          return_replicates = TRUE)
-  expect_true(!is.null(out$replicates))
-  expect_equal(dim(out$replicates), c(10L, 4L))
-})
-
-# -------------------------------------------------------------------
-# .person_bootstrap (with mocked .gt_compute_per_person_for_boot)
-# -------------------------------------------------------------------
-
-test_that(".person_bootstrap returns the expected list structure", {
-  fake_pp_boot <- function(data, X, method, error_type) {
-    matrix(rep(1, 4 * nrow(data)), nrow = nrow(data), ncol = 4L,
+  fake_boot_helper <- function(xrow, b_full, sigma2_i, n_items_D, N, B) {
+    # Even the mock must consume the PRNG identically across calls so
+    # the seed restore test isolates the bootstrap orchestration code.
+    J <- length(xrow)
+    idx <- matrix(sample.int(J, B * J, replace = TRUE), B, J)
+    matrix(0.1, nrow = B, ncol = 4L,
            dimnames = list(NULL,
              c("absolute", "relative_full",
                "relative_large_a", "relative_uncorrelated")))
   }
   testthat::local_mocked_bindings(
-    .gt_compute_per_person_for_boot = fake_pp_boot
+    .gt_compute_per_person_for_boot = fake_boot_helper
+  )
+
+  set.seed(99L)
+  data <- matrix(rbinom(20, 1, 0.5), nrow = 5)
+  vc   <- .gt_variance_components(data)
+  before <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  invisible(.item_bootstrap(data, vc, n_items_D = 4L,
+                            R = 120L, seed = 11L))
+  after <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  expect_identical(before, after)
+})
+
+test_that(".item_bootstrap returns replicates when requested", {
+  fake_boot_helper <- function(xrow, b_full, sigma2_i, n_items_D, N, B) {
+    s <- sum(xrow)
+    matrix(s, nrow = B, ncol = 4L,
+           dimnames = list(NULL,
+             c("absolute", "relative_full",
+               "relative_large_a", "relative_uncorrelated")))
+  }
+  testthat::local_mocked_bindings(
+    .gt_compute_per_person_for_boot = fake_boot_helper
+  )
+
+  set.seed(5L)
+  data <- matrix(rbinom(40, 1, 0.5), nrow = 10)
+  vc   <- .gt_variance_components(data)
+  out  <- .item_bootstrap(data, vc, n_items_D = 4L,
+                          R = 120L, seed = 2L,
+                          return_replicates = TRUE)
+  expect_true(!is.null(out$replicates))
+  expect_equal(dim(out$replicates), c(10L, 4L))
+})
+
+
+# -------------------------------------------------------------------
+# .person_bootstrap (mocking .gt_compute_per_person)
+# -------------------------------------------------------------------
+
+test_that(".person_bootstrap returns the expected list structure", {
+  fake_pp <- function(vc, n_items_D) {
+    matrix(rep(1, 4 * vc$N), nrow = vc$N, ncol = 4L,
+           dimnames = list(NULL,
+             c("absolute", "relative_full",
+               "relative_large_a", "relative_uncorrelated")))
+  }
+  testthat::local_mocked_bindings(
+    .gt_compute_per_person = fake_pp
   )
 
   set.seed(3L)
   data <- matrix(rbinom(10 * 4, 1, 0.5), nrow = 10)
+  vc   <- .gt_variance_components(data)
   X    <- rowSums(data)
-  out  <- .person_bootstrap(data, X, paradigm = "gt",
-                            method     = "full",
+  out  <- .person_bootstrap(data, vc, n_items_D = 4L, X = X,
+                            paradigm = "gt",
+                            method   = "full",
                             error_type = "relative",
                             R = 120L, seed = 4L)
   expect_named(out, c("type", "R", "seed", "per_person_variance"))
@@ -118,37 +155,42 @@ test_that(".person_bootstrap returns the expected list structure", {
 })
 
 test_that(".person_bootstrap variance is zero when estimator is constant across replicates", {
-  fake_pp_boot <- function(data, X, method, error_type) {
-    # All persons get identical estimates regardless of resample
-    matrix(rep(0.5, 4 * nrow(data)), nrow = nrow(data), ncol = 4L,
+  fake_pp <- function(vc, n_items_D) {
+    matrix(rep(0.5, 4 * vc$N), nrow = vc$N, ncol = 4L,
            dimnames = list(NULL,
              c("absolute", "relative_full",
                "relative_large_a", "relative_uncorrelated")))
   }
   testthat::local_mocked_bindings(
-    .gt_compute_per_person_for_boot = fake_pp_boot
+    .gt_compute_per_person = fake_pp
   )
 
   set.seed(7L)
   data <- matrix(rbinom(10 * 5, 1, 0.5), nrow = 10)
+  vc   <- .gt_variance_components(data)
   X    <- rowSums(data)
-  out  <- .person_bootstrap(data, X, R = 120L, seed = 1L)
+  out  <- .person_bootstrap(data, vc, n_items_D = 5L, X = X,
+                            R = 120L, seed = 1L)
   expect_true(all(out$per_person_variance == 0 |
                   is.na(out$per_person_variance)))
 })
 
 test_that(".person_bootstrap rejects non-gt paradigm in csemGT", {
+  data <- matrix(0, 5, 5)
+  vc   <- list(N = 5L, J = 5L)
   expect_error(
-    .person_bootstrap(matrix(0, 5, 5), rep(0, 5), paradigm = "split_half"),
+    .person_bootstrap(data, vc, n_items_D = 5L,
+                      X = rep(0, 5), paradigm = "split_half"),
     "paradigm = 'gt'"
   )
 })
 
+
 # -------------------------------------------------------------------
-# .add_bootstrap_ci
+# .gt_add_bootstrap_se
 # -------------------------------------------------------------------
 
-test_that(".add_bootstrap_ci adds csem_var.boot, se.boot, ci_low.boot, ci_up.boot", {
+test_that(".gt_add_bootstrap_se adds csem_var.boot and se.boot", {
   pp <- data.frame(
     person_id = 1:5,
     estimator = rep("absolute", 5),
@@ -166,16 +208,15 @@ test_that(".add_bootstrap_ci adds csem_var.boot, se.boot, ci_low.boot, ci_up.boo
           "relative_large_a", "relative_uncorrelated"))
     )
   )
-  res <- .add_bootstrap_ci(pp, boot, ci_method = "normal",
-                           ci_level = 0.95)
-  expect_true(all(c("csem_var.boot", "se.boot",
-                    "ci_low.boot", "ci_up.boot") %in% names(res)))
-  # Delta method: var(csem) = var(V) / (4 V); check first row.
+  res <- .gt_add_bootstrap_se(pp, boot)
+  expect_true(all(c("csem_var.boot", "se.boot") %in% names(res)))
+  # Delta-method conversion: var(V) / (4 * csem^2).
   expect_equal(res$csem_var.boot[1], 0.001 / (4 * 0.20^2),
                tolerance = 1e-12)
+  expect_equal(res$se.boot, sqrt(res$csem_var.boot), tolerance = 1e-12)
 })
 
-test_that(".add_bootstrap_ci normal CI uses z * SE correctly", {
+test_that(".gt_add_bootstrap_se delta method matches the closed form", {
   pp <- data.frame(
     person_id = 1L,
     estimator = "absolute",
@@ -191,34 +232,62 @@ test_that(".add_bootstrap_ci normal CI uses z * SE correctly", {
           "relative_large_a", "relative_uncorrelated"))
     )
   )
-  res <- .add_bootstrap_ci(pp, boot, ci_method = "normal",
-                           ci_level = 0.95)
-  z  <- qnorm(0.975)
-  se <- sqrt(0.04 / (4 * 0.5^2))
-  expect_equal(res$ci_up.boot,  0.5 + z * se, tolerance = 1e-12)
-  expect_equal(res$ci_low.boot, max(0.5 - z * se, 0), tolerance = 1e-12)
+  res <- .gt_add_bootstrap_se(pp, boot)
+  # var(V) = 0.04, csem = 0.5 -> csem_var.boot = 0.04 / (4 * 0.25) = 0.04
+  expect_equal(res$csem_var.boot, 0.04 / (4 * 0.5^2), tolerance = 1e-12)
+  expect_equal(res$se.boot, sqrt(0.04 / (4 * 0.5^2)), tolerance = 1e-12)
 })
 
-test_that(".add_bootstrap_ci falls back to normal when no replicates available", {
+test_that(".gt_add_bootstrap_se gives NA where csem <= 0", {
   pp <- data.frame(
-    person_id = 1L, estimator = "absolute", csem = 0.4,
+    person_id = 1:3,
+    estimator = rep("absolute", 3),
+    csem      = c(0.0, -0.1, 0.4),
     stringsAsFactors = FALSE
   )
   boot <- list(
     per_person_variance = matrix(
-      c(0.01, NA, NA, NA), nrow = 1, ncol = 4,
+      c(0.01, 0.01, 0.01, rep(NA_real_, 9)),
+      nrow = 3, ncol = 4,
       dimnames = list(NULL,
         c("absolute", "relative_full",
           "relative_large_a", "relative_uncorrelated"))
     )
   )
-  res <- .add_bootstrap_ci(pp, boot, ci_method = "percentile",
-                           ci_level = 0.95)
-  expect_equal(attr(res, "ci_method"), "normal")
-  expect_false(any(is.na(res$ci_low.boot)))
+  res <- .gt_add_bootstrap_se(pp, boot)
+  expect_true(is.na(res$csem_var.boot[1]))
+  expect_true(is.na(res$csem_var.boot[2]))
+  expect_false(is.na(res$csem_var.boot[3]))
 })
 
-test_that(".add_bootstrap_ci warns when estimator missing from boot", {
+test_that(".gt_add_bootstrap_se handles multiple estimators independently", {
+  pp <- data.frame(
+    person_id = rep(1:2, times = 2),
+    estimator = rep(c("absolute", "relative_full"), each = 2),
+    csem      = c(0.30, 0.40, 0.30, 0.40),
+    stringsAsFactors = FALSE
+  )
+  boot <- list(
+    per_person_variance = matrix(
+      c(0.001, 0.002,            # absolute
+        0.003, 0.004,            # relative_full
+        NA, NA, NA, NA),         # large_a, uncorrelated unused
+      nrow = 2, ncol = 4,
+      dimnames = list(NULL,
+        c("absolute", "relative_full",
+          "relative_large_a", "relative_uncorrelated"))
+    )
+  )
+  res <- .gt_add_bootstrap_se(pp, boot)
+  sel_abs  <- res$estimator == "absolute"
+  sel_full <- res$estimator == "relative_full"
+  expect_equal(res$csem_var.boot[sel_abs][1],
+               0.001 / (4 * 0.30^2), tolerance = 1e-12)
+  expect_equal(res$csem_var.boot[sel_full][1],
+               0.003 / (4 * 0.30^2), tolerance = 1e-12)
+})
+
+test_that(".gt_add_bootstrap_se warns when estimator missing from boot", {
   pp <- data.frame(
     person_id = 1L, estimator = "relative_full", csem = 0.5,
     stringsAsFactors = FALSE
@@ -231,58 +300,20 @@ test_that(".add_bootstrap_ci warns when estimator missing from boot", {
     )
   )
   expect_warning(
-    .add_bootstrap_ci(pp, boot, ci_method = "normal"),
+    .gt_add_bootstrap_se(pp, boot),
     "not available"
   )
 })
 
-test_that(".add_bootstrap_ci rejects malformed inputs", {
+test_that(".gt_add_bootstrap_se rejects malformed inputs", {
   expect_error(
-    .add_bootstrap_ci(data.frame(x = 1), list()),
+    .gt_add_bootstrap_se(data.frame(x = 1), list()),
     "person_id"
   )
   expect_error(
-    .add_bootstrap_ci(
+    .gt_add_bootstrap_se(
       data.frame(person_id = 1, csem = 0.1, estimator = "absolute"),
       list()),
     "per_person_variance"
   )
-})
-
-# -------------------------------------------------------------------
-# .add_analytical_ci
-# -------------------------------------------------------------------
-
-test_that(".add_analytical_ci adds se.analytic, ci_low.analytic, ci_up.analytic", {
-  pp <- data.frame(
-    csem               = c(0.20, 0.30, 0.40),
-    csem_var.analytic  = c(0.001, 0.002, 0.003),
-    stringsAsFactors   = FALSE
-  )
-  res <- .add_analytical_ci(pp, ci_level = 0.95, paradigm = "gt")
-  expect_true(all(c("se.analytic", "ci_low.analytic", "ci_up.analytic") %in%
-                  names(res)))
-  expect_equal(res$se.analytic, sqrt(pp$csem_var.analytic),
-               tolerance = 1e-12)
-})
-
-test_that(".add_analytical_ci ci_up = csem + z*SE", {
-  pp <- data.frame(csem = 0.5, csem_var.analytic = 0.01,
-                   stringsAsFactors = FALSE)
-  res <- .add_analytical_ci(pp, ci_level = 0.95)
-  expect_equal(res$ci_up.analytic, 0.5 + qnorm(0.975) * 0.1,
-               tolerance = 1e-12)
-})
-
-test_that(".add_analytical_ci ci_low never goes below zero", {
-  pp <- data.frame(csem = 0.05, csem_var.analytic = 0.01,
-                   stringsAsFactors = FALSE)
-  res <- .add_analytical_ci(pp, ci_level = 0.95)
-  expect_gte(res$ci_low.analytic, 0)
-})
-
-test_that(".add_analytical_ci rejects malformed inputs", {
-  expect_error(.add_analytical_ci(data.frame(x = 1)), "csem")
-  expect_error(.add_analytical_ci(data.frame(csem = 0.1),
-                                  ci_level = 0), "ci_level")
 })

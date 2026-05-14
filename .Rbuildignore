@@ -21,3 +21,6 @@
 ^\.positai$
 ^\.claude$
 ^verify_sprint1\.R$
+^data-raw$
+^_problems$
+^tests/testthat/_problems$
