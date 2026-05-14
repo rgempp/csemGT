@@ -45,5 +45,5 @@ VignetteBuilder: knitr
 URL: https://github.com/rgempp/csemGT, https://gempp.cl/csemGT/
 BugReports: https://github.com/rgempp/csemGT/issues
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
 Language: en-US
+Config/roxygen2/version: 8.0.0
