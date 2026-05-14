@@ -56,7 +56,8 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of <code>csemGT</code> is to estimate the conditional standard error of measurement (CSEM) within the Generalizability Theory framework for the persons-by-items univariate single-facet crossed design, following Brennan (1998). It was created and is maintained by <a href="https://gempp.cl" class="external-link">René Gempp</a> as the first of a planned series of focused packages on CSEM, paralleling the Stata module <code>gtcsem</code>.</p>
+<p>The goal of <code>csemGT</code> is to estimate the conditional standard error of measurement (CSEM) within the Generalizability Theory framework for the univariate, single-facet, persons-by-items (p × i) crossed design, following Brennan (1998). It was created and is maintained by <a href="https://gempp.cl/" class="external-link">René Gempp</a>, paralleling the Stata module <a href="https://github.com/rgempp/gtcsem" class="external-link"><code>gtcsem</code></a>.</p>
+<p>Unlike most other psychometric frameworks, Generalizability Theory distinguishes two types of conditional measurement error: the <strong>absolute CSEM</strong>, appropriate when decisions concern the absolute magnitude of a person’s score (for example, mastery classification against a fixed cutpoint), and the <strong>relative CSEM</strong>, appropriate when decisions concern comparisons among persons (for example, ranking or selection). <code>csemGT</code> estimates both.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -82,17 +83,11 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, plot_type <span class="op">=</span> <span class="st">"both"</span>, error_types <span class="op">=</span> <span class="st">"absolute"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="relationship-with-the-forthcoming-csemr">Relationship with the forthcoming <code>csemR</code>
-<a class="anchor" aria-label="anchor" href="#relationship-with-the-forthcoming-csemr"></a>
-</h2>
-<p><code>csemGT</code> is the first of a planned family of CSEM packages. The broader <code>csemR</code> package, currently in development, will integrate <code>csem_gt()</code> with additional estimator families (split-half methods including Woodruff (1990), ANOVA-based methods, and binomial/compound binomial models including Hanson’s 4-parameter beta compound binomial). Users of <code>csemGT</code> will be able to migrate to <code>csemR</code> via a simple <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library()</a></code> change; the function signature and output object are identical.</p>
-</div>
-<div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<p>If you use <code>csemGT</code> in published work, please cite (the entry will be updated once the companion paper is in press):</p>
+<p>If you use <code>csemGT</code> in published work, please cite it as:</p>
 <blockquote>
-<p>Gempp, R. (in preparation). <em>Conditional standard errors of measurement in generalizability theory</em>. Manuscript in preparation.</p>
+<p>Gempp, R. (2026). <em>csemGT: Conditional Standard Error of Measurement in Generalizability Theory</em>. R package version 1.0.0. <a href="https://github.com/rgempp/csemGT" class="external-link uri">https://github.com/rgempp/csemGT</a></p>
 </blockquote>
 </div>
 <div class="section level2">
