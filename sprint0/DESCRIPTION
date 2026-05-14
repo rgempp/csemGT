@@ -1,0 +1,49 @@
+Package: csemGT
+Type: Package
+Title: Conditional Standard Error of Measurement in Generalizability Theory
+Version: 1.0.0
+Authors@R:
+    person(given = "René", family = "Gempp",
+           email = "rene.gempp@udp.cl",
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0002-0427-6894"))
+Description: Estimates the conditional standard error of measurement
+    (CSEM) within the Generalizability Theory framework for the
+    persons-by-items univariate single-facet crossed design
+    following Brennan (1998) <doi:10.1177/014662169802200401>.
+    Returns person-level CSEM estimates for absolute and relative
+    error variances, with three estimators of the relative error
+    variance (full, large_a, uncorrelated), closed-form analytical
+    and item-resampling bootstrap sampling variances, quadratic
+    smoothing of CSEMs on observed score, D-study extrapolation,
+    and post-estimation plotting in base graphics. This is a focused
+    release; the broader 'csemR' package, in development, will provide
+    additional families of CSEM estimators (split-half, ANOVA-based,
+    binomial and compound binomial). Users seeking the full suite
+    should install 'csemR' once available.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.1.0)
+Imports:
+    stats,
+    utils,
+    graphics,
+    grDevices
+Suggests:
+    boot,
+    mgcv,
+    ggplot2,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    covr,
+    spelling,
+    mirt
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://github.com/rgempp/csemGT, https://gempp.cl/csemGT/
+BugReports: https://github.com/rgempp/csemGT/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Language: en-US

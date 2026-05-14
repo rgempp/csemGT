@@ -1,0 +1,63 @@
+url: https://rgempp.github.io/csemGT/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    pkgdown-nav-height: 70px
+
+navbar:
+  title: csemGT
+  left:
+    - icon: fa-home fa-lg
+      aria-label: Home
+      href: index.html
+    - text: Reference
+      href: reference/index.html
+    - text: Vignettes
+      menu:
+        - text: Introduction to csemGT
+          href: articles/intro-csem-gt.html
+        - text: Replicating the paper examples
+          href: articles/paper-examples.html
+    - text: News
+      href: news/index.html
+  right:
+    - icon: fa-github fa-lg
+      aria-label: GitHub
+      href: https://github.com/rgempp/csemGT
+
+# La sección `articles` se completará en Sprint 4 cuando los .Rmd existan.
+# Estructura prevista (mantener comentado hasta Sprint 4):
+#
+# articles:
+#   - title: Tutorials
+#     navbar: ~
+#     contents:
+#       - intro-csem-gt
+#       - paper-examples
+
+# La sección `reference` se completará en Sprints 2 y 3, conforme las
+# funciones y métodos se exporten. Estructura prevista:
+#
+# reference:
+#   - title: Estimation
+#     contents:
+#       - csem_gt
+#   - title: S3 class and methods
+#     contents:
+#       - new_csem
+#       - is.csem
+#       - print.csem
+#       - summary.csem
+#       - plot.csem
+#       - as.data.frame.csem
+#       - by_score
+#       - coef.csem
+#   - title: Datasets
+#     contents:
+#       - iowa_like
+
+authors:
+  René Gempp:
+    href: https://gempp.cl
