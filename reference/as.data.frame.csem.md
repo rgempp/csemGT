@@ -54,7 +54,6 @@ when \`by = "score"\`.
 set.seed(1)
 d <- matrix(rbinom(60 * 12, 1, 0.5), nrow = 60)
 fit <- csem_gt(d, error_type = "absolute")
-#> Within-score heterogeneity detected in person-level estimates during collapse_to_score(); row-wise mean used. Verify that the per-person estimator depends on the score alone.
 head(as.data.frame(fit))                 # by = "person"
 #>   person_id observed_score conditioning_value group_size extreme      cov_xim
 #> 1         1      0.4166667          0.4166667         15   FALSE  0.005681818

@@ -40,7 +40,6 @@ underlying components.
 set.seed(1)
 d <- matrix(rbinom(80 * 15, 1, 0.5), nrow = 80)
 fit <- csem_gt(d, cutpoint = 0.5)
-#> Within-score heterogeneity detected in person-level estimates during collapse_to_score(); row-wise mean used. Verify that the per-person estimator depends on the score alone.
 print(fit)
 #> ----------------------------------------------------------------
 #> Conditional SEMs in Generalizability Theory

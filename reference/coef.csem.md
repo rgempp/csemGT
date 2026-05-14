@@ -38,7 +38,6 @@ its structure.
 set.seed(1)
 d <- matrix(rbinom(60 * 12, 1, 0.5), nrow = 60)
 fit <- csem_gt(d, error_type = "absolute")
-#> Within-score heterogeneity detected in person-level estimates during collapse_to_score(); row-wise mean used. Verify that the per-person estimator depends on the score alone.
 coef(fit)$reliability_coefficients
 #> $erho2
 #> [1] -0.1791206

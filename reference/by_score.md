@@ -40,7 +40,6 @@ variance components.
 set.seed(1)
 d <- matrix(rbinom(60 * 12, 1, 0.5), nrow = 60)
 fit <- csem_gt(d, error_type = "absolute")
-#> Within-score heterogeneity detected in person-level estimates during collapse_to_score(); row-wise mean used. Verify that the per-person estimator depends on the score alone.
 head(by_score(fit))
 #>   observed_score group_size       cov_xim csem_var.absolute csem.absolute
 #> 1      0.1666667          1 -0.0022727273        0.01262626     0.1123666

@@ -50,7 +50,6 @@ table; \[print.summary.csem()\] displays a curated subset.
 set.seed(1)
 d <- matrix(rbinom(80 * 15, 1, 0.5), nrow = 80)
 fit <- csem_gt(d, error_type = "absolute")
-#> Within-score heterogeneity detected in person-level estimates during collapse_to_score(); row-wise mean used. Verify that the per-person estimator depends on the score alone.
 s <- summary(fit)
 s$global_stats
 #> $relative_sem
