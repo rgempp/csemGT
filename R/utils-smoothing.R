@@ -6,8 +6,9 @@
 #'
 #' For each `csem_var.<suffix>` column in `by_score`, fits an ordinary
 #' least squares polynomial regression of the variance on the observed
-#' score, truncates fitted values at zero, takes the square root, and
-#' writes the result back as `smoothed_csem.<suffix>`. Smoother
+#' score and takes the square root of the fitted values, leaving the
+#' smoothed CSEM undefined (`NA`) where the fitted variance is negative,
+#' and writes the result back as `smoothed_csem.<suffix>`. Smoother
 #' diagnostics (intercept, slope, quadratic coefficient, R^2, RMSE,
 #' sample size used for the fit) are returned as an `attr(<>, "smooth_fits")`.
 #'
@@ -30,8 +31,12 @@
 #'   `exclude_extremes = TRUE`. Typically `c(0, J)`.
 #'
 #' @return The input `by_score` with new `smoothed_csem.<suffix>`
-#'   columns and a `"smooth_fits"` attribute (a named list, one element
-#'   per smoothed suffix).
+#'   columns and two attributes: `"smooth_fits"` (a named list, one
+#'   element per smoothed suffix) and `"smoothing_diagnostics"` (a list
+#'   with `n_floor`, `n_ceiling`, `n_fit` — the floor, ceiling, and
+#'   fit-sample counts when `exclude_extremes = TRUE`, all `NA` when
+#'   extremes are retained). The `smoother = "none"` passthrough sets
+#'   neither attribute.
 #' @keywords internal
 .apply_smoother <- function(by_score,
                             smoother         = "polynomial",
@@ -60,10 +65,41 @@
     fit_idx <- rep(TRUE, nrow(by_score))
   }
 
-  ev_cols <- grep("^csem_var\\.", names(by_score), value = TRUE)
+  # Floor / ceiling / fit-sample counts for the smoother, mirroring the
+  # r(n_floor) / r(n_ceiling) / r(n_fit) scalars of gtcsem.ado. These are
+  # surfaced in the csem object under
+  # variance_components$reliability_coefficients$smoothing_diagnostics. They
+  # are only meaningful when extremes are actually excluded; with
+  # exclude_extremes = FALSE every row feeds the fit and the counts are NA.
+  if (exclude_extremes && !is.null(score_extremes)) {
+    smoothing_diagnostics <- list(
+      n_floor   = sum(by_score$observed_score == score_extremes[1L],
+                      na.rm = TRUE),
+      n_ceiling = sum(by_score$observed_score == score_extremes[2L],
+                      na.rm = TRUE),
+      n_fit     = sum(fit_idx)
+    )
+  } else {
+    smoothing_diagnostics <- list(
+      n_floor   = NA_integer_,
+      n_ceiling = NA_integer_,
+      n_fit     = NA_integer_
+    )
+  }
+
+  # Only the four error-variance POINT ESTIMATES are smoothed:
+  # csem_var.<estimator> where <estimator> is a single token (no dot).
+  # The qualified columns csem_var.analytic.* and csem_var.boot.* are
+  # sampling variances of the estimators, not error variances, and may
+  # carry NA (e.g. csem_var.analytic.* is NA where the point estimate is
+  # <= 0). The [^.]+$ anchor excludes them: estimator names contain no
+  # dot, the qualifiers introduce one.
+  ev_cols <- grep("^csem_var\\.[^.]+$", names(by_score), value = TRUE)
   if (length(ev_cols) == 0L) {
-    # Nothing to smooth; pass through with empty diagnostics
-    attr(by_score, "smooth_fits") <- list()
+    # Nothing to smooth; pass through with empty smoother diagnostics but
+    # still report the floor/ceiling/fit counts computed above.
+    attr(by_score, "smooth_fits")           <- list()
+    attr(by_score, "smoothing_diagnostics") <- smoothing_diagnostics
     return(by_score)
   }
 
@@ -83,8 +119,17 @@
 
     fit  <- stats::lm(fit_formula, data = fit_data)
     pred <- stats::predict(fit, newdata = data.frame(x = x))
-    pred <- pmax(pred, 0)                       # variances >= 0
-    csem_smooth <- sqrt(pred)
+
+    # A negative fitted error variance has no real square root: the
+    # smoothed CSEM is left undefined (NA) at that score rather than
+    # truncated to zero, which would assert perfect precision where the
+    # quadratic model yields no usable estimate. This matches the
+    # gtcsem.ado convention, cond(ev_sm >= 0, sqrt(ev_sm), .). The
+    # explicit index avoids feeding negatives to sqrt() (which would
+    # emit a "NaNs produced" warning before the NA mask is applied).
+    csem_smooth <- rep(NA_real_, length(pred))
+    nonneg <- !is.na(pred) & pred >= 0
+    csem_smooth[nonneg] <- sqrt(pred[nonneg])
 
     if (exclude_extremes && !is.null(score_extremes)) {
       excluded_idx <- by_score$observed_score %in% score_extremes
@@ -98,18 +143,28 @@
     n_fit <- sum(fit_idx)
     rmse  <- sqrt(sse / n_fit)
 
+    # R^2 computed directly as 1 - SSE/SST rather than via summary.lm():
+    # for a binary item set, csem_var.absolute is an exact quadratic in
+    # observed_score, so the OLS fit is numerically perfect and
+    # summary.lm() emits an "essentially perfect fit" warning. The direct
+    # formula is identical to summary(fit)$r.squared for an
+    # intercept-bearing model and is warning-free.
+    sst <- sum((fit_data$y - mean(fit_data$y))^2)
+    r2  <- if (sst > 0) 1 - sse / sst else NA_real_
+
     coefs <- stats::coef(fit)
     # Coefficient layout: (Intercept), I(x^1), I(x^2), ...
     smooth_fits[[suffix]] <- list(
       b0   = unname(coefs[1]),
       b1   = if (degree >= 1L) unname(coefs[2]) else NA_real_,
       b2   = if (degree >= 2L) unname(coefs[3]) else NA_real_,
-      R2   = summary(fit)$r.squared,
+      R2   = r2,
       RMSE = rmse,
       N    = n_fit
     )
   }
 
-  attr(by_score, "smooth_fits") <- smooth_fits
+  attr(by_score, "smooth_fits")           <- smooth_fits
+  attr(by_score, "smoothing_diagnostics") <- smoothing_diagnostics
   by_score
 }

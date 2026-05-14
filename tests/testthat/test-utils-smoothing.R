@@ -103,6 +103,34 @@ test_that(".apply_smoother fits over only the included rows when exclude_extreme
   expect_equal(diag$N, nrow(by_score) - length(excl))
 })
 
+test_that(".apply_smoother emits smoothing_diagnostics with exclude_extremes counts", {
+  by_score <- .make_test_by_score()  # scores 0:20, one row per score
+  result <- .apply_smoother(by_score, "polynomial", list(degree = 2),
+                            exclude_extremes = TRUE,
+                            score_extremes   = c(0, 20))
+  sd <- attr(result, "smoothing_diagnostics")
+  expect_named(sd, c("n_floor", "n_ceiling", "n_fit"))
+  expect_equal(sd$n_floor,   1L)
+  expect_equal(sd$n_ceiling, 1L)
+  expect_equal(sd$n_fit,     nrow(by_score) - 2L)
+  # n_fit must coincide with the per-estimator diagnostic N.
+  expect_equal(sd$n_fit, attr(result, "smooth_fits")$absolute$N)
+})
+
+test_that(".apply_smoother smoothing_diagnostics are NA without exclude_extremes", {
+  by_score <- .make_test_by_score()
+  result <- .apply_smoother(by_score, "polynomial", list(degree = 2))
+  sd <- attr(result, "smoothing_diagnostics")
+  expect_named(sd, c("n_floor", "n_ceiling", "n_fit"))
+  expect_true(all(is.na(unlist(sd))))
+})
+
+test_that(".apply_smoother passthrough ('none') sets no smoothing_diagnostics", {
+  by_score <- .make_test_by_score()
+  result <- .apply_smoother(by_score, smoother = "none")
+  expect_null(attr(result, "smoothing_diagnostics"))
+})
+
 test_that(".apply_smoother on a by_score with no csem_var.* columns returns empty diagnostics", {
   by_score <- data.frame(observed_score = 0:10, group_size = rep(1L, 11))
   result <- .apply_smoother(by_score)
