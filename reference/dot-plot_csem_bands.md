@@ -1,0 +1,58 @@
+# Compute confidence-band vertices for a CSEM plot
+
+Builds the ribbon vertices consumed by \[.plot_csem_single()\] when
+\`plot_type\` is \`"ci"\` or \`"both"\`. Two band sources are supported,
+following the \`gtcsem_plot\` Stata command:
+
+## Usage
+
+``` r
+.plot_csem_bands(x, series, cibands, asemethod, ci_level)
+```
+
+## Arguments
+
+- x:
+
+  A \`csem\` object.
+
+- series:
+
+  A single series descriptor from \[.resolve_plot_columns()\].
+
+- cibands:
+
+  Band source: \`"person"\` or \`"model"\`.
+
+- asemethod:
+
+  Sampling-SE source for \`cibands = "person"\`: \`"analytical"\` or
+  \`"bootstrap"\`. Ignored when \`cibands = "model"\`.
+
+- ci_level:
+
+  Confidence level for the band.
+
+## Value
+
+A list with numeric vectors \`x\` (the sorted score grid), \`lo\` and
+\`hi\` (the ribbon edges) and \`center\` (the curve the band is built
+around).
+
+## Details
+
+\* \`cibands = "person"\` — a band around the by-score CSEM curve,
+\\\widehat{csem} \pm z\\ \widehat{se}\\, where \\\widehat{se}\\ is the
+per-person sampling SE of the CSEM collapsed to the score level
+(\`se.analytic.\*\` or \`se.boot.\*\`, selected by \`asemethod\`). The
+lower edge is truncated at zero. The ribbon is restricted to the
+non-extreme score range when the fit excluded extremes from the smoother
+(mirroring the \`keep\` filter of \`gtcsem_plot\`). \* \`cibands =
+"model"\` — a band around the quadratic smoother. The per-person error
+variance is refit on the observed score and its square by ordinary least
+squares, over the same non-extreme sample the smoother used. Because
+that is the same fit \`.apply_smoother()\` performs, the band centre
+coincides with the stored \`smoothed_csem.\*\` curve; \`predict(se.fit =
+TRUE)\` supplies the SE of the mean fit, which the delta method converts
+to the CSEM scale as \\se.fit / (2\\ \widehat{csem})\\. \`asemethod\` is
+ignored for this source.

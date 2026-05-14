@@ -74,13 +74,13 @@ plot(
 - cibands:
 
   Source of the confidence bands when \`plot_type\` is \`"ci"\` or
-  \`"both"\`: \`"person"\` (per-person intervals) or \`"model"\` (a band
-  around the quadratic fit).
+  \`"both"\`: \`"person"\` (per-person intervals collapsed to the score
+  level) or \`"model"\` (a band around the quadratic fit).
 
 - asemethod:
 
-  Sampling-variance source for the confidence bands: \`"analytical"\` or
-  \`"bootstrap"\`.
+  Sampling-variance source for the \`"person"\` bands: \`"analytical"\`
+  or \`"bootstrap"\`. Ignored when \`cibands = "model"\`.
 
 - ci_level:
 
@@ -107,7 +107,9 @@ plot(
 
 - main, sub, xlab, ylab:
 
-  Title, subtitle and axis labels. \`NULL\` selects a sensible default.
+  Title, subtitle and axis labels. \`NULL\` selects a sensible default;
+  for \`plot_type\` \`"ci"\` / \`"both"\` the default subtitle reports
+  the confidence level and band source.
 
 - ylim, xlim:
 
@@ -127,6 +129,26 @@ plot(
 
 \`x\`, invisibly.
 
+## Details
+
+When \`plot_type\` is \`"ci"\` or \`"both"\` a confidence-band ribbon is
+added. Two band sources are available through \`cibands\`:
+
+\* \`"person"\` (the default) draws \\\widehat{csem} \pm z\\
+\widehat{se}\\ around the by-score CSEM curve, using the per-person
+sampling SE of the CSEM. \`asemethod\` selects whether that SE is the
+analytical or the bootstrap one; the bootstrap SE is only available when
+\`csem_gt()\` was run with \`bootstrap = TRUE\`. \* \`"model"\` draws a
+band around the quadratic smoother. The per-person error variance is
+refit on the observed score and its square, and the SE of the mean fit
+is converted to the CSEM scale by the delta method. \`asemethod\` is
+ignored for this source.
+
+The confidence level is \`ci_level\` (defaulting to the level stored in
+\`x\`), so a level different from the one used at fitting time can be
+requested at plot time. The lower edge of every band is truncated at
+zero.
+
 ## See also
 
 \[csem_palette()\] for the colours used; \[by_score()\] and
@@ -139,5 +161,7 @@ set.seed(1)
 d <- matrix(rbinom(100 * 14, 1, 0.5), nrow = 100)
 fit <- csem_gt(d, error_type = "absolute")
 plot(fit)
+
+plot(fit, plot_type = "both")
 
 ```

@@ -124,13 +124,13 @@ estimators on one panel. Defaults to `FALSE`.</p></dd>
 
 <dt id="arg-cibands">cibands<a class="anchor" aria-label="anchor" href="#arg-cibands"></a></dt>
 <dd><p>Source of the confidence bands when `plot_type` is
-`"ci"` or `"both"`: `"person"` (per-person intervals) or `"model"`
-(a band around the quadratic fit).</p></dd>
+`"ci"` or `"both"`: `"person"` (per-person intervals collapsed to
+the score level) or `"model"` (a band around the quadratic fit).</p></dd>
 
 
 <dt id="arg-asemethod">asemethod<a class="anchor" aria-label="anchor" href="#arg-asemethod"></a></dt>
-<dd><p>Sampling-variance source for the confidence bands:
-`"analytical"` or `"bootstrap"`.</p></dd>
+<dd><p>Sampling-variance source for the `"person"` bands:
+`"analytical"` or `"bootstrap"`. Ignored when `cibands = "model"`.</p></dd>
 
 
 <dt id="arg-ci-level">ci_level<a class="anchor" aria-label="anchor" href="#arg-ci-level"></a></dt>
@@ -159,7 +159,8 @@ the number of plotted persons.</p></dd>
 
 <dt id="arg-main-sub-xlab-ylab">main, sub, xlab, ylab<a class="anchor" aria-label="anchor" href="#arg-main-sub-xlab-ylab"></a></dt>
 <dd><p>Title, subtitle and axis labels. `NULL`
-selects a sensible default.</p></dd>
+selects a sensible default; for `plot_type` `"ci"` / `"both"` the
+default subtitle reports the confidence level and band source.</p></dd>
 
 
 <dt id="arg-ylim-xlim">ylim, xlim<a class="anchor" aria-label="anchor" href="#arg-ylim-xlim"></a></dt>
@@ -181,6 +182,24 @@ opening a new one.</p></dd>
     <p>`x`, invisibly.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>When `plot_type` is `"ci"` or `"both"` a confidence-band ribbon is
+added. Two band sources are available through `cibands`:</p>
+<p>* `"person"` (the default) draws \(\widehat{csem} \pm z\,
+  \widehat{se}\) around the by-score CSEM curve, using the per-person
+  sampling SE of the CSEM. `asemethod` selects whether that SE is the
+  analytical or the bootstrap one; the bootstrap SE is only available
+  when `csem_gt()` was run with `bootstrap = TRUE`.
+* `"model"` draws a band around the quadratic smoother. The
+  per-person error variance is refit on the observed score and its
+  square, and the SE of the mean fit is converted to the CSEM scale
+  by the delta method. `asemethod` is ignored for this source.</p>
+<p>The confidence level is `ci_level` (defaulting to the level stored in
+`x`), so a level different from the one used at fitting time can be
+requested at plot time. The lower edge of every band is truncated at
+zero.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>[csem_palette()] for the colours used; [by_score()] and
   [as.data.frame.csem()] for the tables the plot is built from.</p></div>
@@ -193,6 +212,8 @@ opening a new one.</p></dd>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="csem_gt.html">csem_gt</a></span><span class="op">(</span><span class="va">d</span>, error_type <span class="op">=</span> <span class="st">"absolute"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.csem-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, plot_type <span class="op">=</span> <span class="st">"both"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.csem-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
