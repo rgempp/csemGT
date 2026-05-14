@@ -73,8 +73,11 @@
 #' error variance is a function of the score (or, for `full` and
 #' `large_a`, additionally of within-score variability — see Brennan,
 #' 1998), so per-person values within a score are not necessarily
-#' identical. When non-identical values are detected the row-wise mean
-#' is used and a single message is emitted.
+#' identical. Non-identical values are collapsed by the within-score
+#' mean. Heterogeneity is by design for `cov_xim` and the `full` and
+#' `large_a` estimators, so it is collapsed silently; for the
+#' score-conditioned estimators (`absolute`, `relative_uncorrelated`) a
+#' single descriptive message names the affected columns.
 #'
 #' @param per_person_wide A data frame in person-level wide format with
 #'   columns `observed_score` plus any number of estimation columns.
@@ -110,9 +113,9 @@
     stringsAsFactors = FALSE
   )
 
-  # Track within-score heterogeneity without using <<-.
+  # Track which columns show within-score heterogeneity (no <<-).
   state <- new.env(parent = emptyenv())
-  state$saw_heterogeneity <- FALSE
+  state$het_cols <- character(0)
 
   for (col in cols_to_collapse) {
     vals <- vapply(
@@ -126,7 +129,7 @@
         # numerics so this branch is a defensive fallback).
         if (is.numeric(v)) {
           if (length(v) > 1L && diff(range(v)) > 1e-12) {
-            assign("saw_heterogeneity", TRUE, envir = state)
+            assign("het_cols", union(state$het_cols, col), envir = state)
           }
           mean(v)
         } else {
@@ -138,12 +141,36 @@
     out[[col]] <- vals
   }
 
-  if (isTRUE(state$saw_heterogeneity)) {
-    message(
-      "Within-score heterogeneity detected in person-level estimates ",
-      "during collapse_to_score(); row-wise mean used. Verify that the ",
-      "per-person estimator depends on the score alone."
-    )
+  # Within-score heterogeneity is by design for any quantity built from
+  # the person-specific covariance term cov_xim (Brennan, 1998, eq. 33):
+  # cov_xim itself and the relative_full / relative_large_a estimators
+  # that use it. Those columns are collapsed by the within-score mean
+  # silently. For the score-conditioned estimators (absolute,
+  # relative_uncorrelated) within-score heterogeneity is expected with
+  # polytomous items but not with strictly dichotomous items, so it is
+  # reported there -- descriptively, naming the columns, not as an error.
+  if (length(state$het_cols) > 0L) {
+    estimator_of <- function(nm) {
+      parts <- strsplit(nm, ".", fixed = TRUE)[[1L]]
+      parts[[length(parts)]]
+    }
+    by_design <- function(nm) {
+      identical(nm, "cov_xim") ||
+        estimator_of(nm) %in% c("relative_full", "relative_large_a")
+    }
+    report_cols <- state$het_cols[
+      !vapply(state$het_cols, by_design, logical(1))
+    ]
+    if (length(report_cols) > 0L) {
+      message(
+        "Within-score heterogeneity when collapsing to the by-score ",
+        "table, in: ", paste(sort(report_cols), collapse = ", "),
+        ". The by-score value is the within-score mean. This is ",
+        "expected with polytomous items; with strictly dichotomous ",
+        "items these estimators are functions of the observed score ",
+        "alone, so heterogeneity there would be worth checking."
+      )
+    }
   }
 
   out

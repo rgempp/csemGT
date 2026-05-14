@@ -125,3 +125,57 @@ test_that(".collapse_to_score messages when within-score heterogeneity is detect
   )
   expect_message(.collapse_to_score(pp), "heterogeneity")
 })
+
+test_that(".collapse_to_score names the heterogeneous score-conditioned columns", {
+  # absolute and relative_uncorrelated are score-conditioned estimators:
+  # within-score heterogeneity is reported, and the offending columns are
+  # named in the message (descriptively, not as an error).
+  pp <- data.frame(
+    person_id                  = 1:3,
+    observed_score             = c(5, 5, 10),
+    group_size                 = c(1L, 1L, 1L),
+    csem.absolute              = c(0.30, 0.40, 0.50),
+    csem.relative_uncorrelated = c(0.25, 0.35, 0.45),
+    stringsAsFactors = FALSE
+  )
+  msg <- paste(capture_messages(.collapse_to_score(pp)), collapse = "")
+  expect_match(msg, "heterogeneity")
+  expect_match(msg, "within-score mean")
+  expect_match(msg, "csem\\.absolute")
+  expect_match(msg, "csem\\.relative_uncorrelated")
+})
+
+test_that(".collapse_to_score stays silent for by-design heterogeneity", {
+  # cov_xim and the relative_full / relative_large_a estimators built on
+  # it carry the person-specific covariance term (Brennan, 1998, eq. 33),
+  # so within-score heterogeneity is expected by construction and must
+  # not be reported.
+  pp <- data.frame(
+    person_id             = 1:3,
+    observed_score        = c(5, 5, 10),
+    group_size            = c(1L, 1L, 1L),
+    cov_xim               = c(0.10, 0.20, 0.30),
+    csem.relative_full    = c(0.30, 0.40, 0.50),
+    csem.relative_large_a = c(0.28, 0.38, 0.48),
+    stringsAsFactors = FALSE
+  )
+  expect_no_message(.collapse_to_score(pp))
+})
+
+test_that(".collapse_to_score reports only score-conditioned columns when heterogeneity is mixed", {
+  # csem.absolute (score-conditioned -> reported) and csem.relative_full
+  # (by design -> silent) are both heterogeneous within score 5. The
+  # message must fire, name csem.absolute, and say nothing about
+  # csem.relative_full.
+  pp <- data.frame(
+    person_id          = 1:3,
+    observed_score     = c(5, 5, 10),
+    group_size         = c(1L, 1L, 1L),
+    csem.absolute      = c(0.30, 0.40, 0.50),
+    csem.relative_full = c(0.30, 0.40, 0.50),
+    stringsAsFactors = FALSE
+  )
+  msg <- paste(capture_messages(.collapse_to_score(pp)), collapse = "")
+  expect_match(msg, "csem\\.absolute")
+  expect_false(grepl("relative_full", msg))
+})

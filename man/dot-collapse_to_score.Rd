@@ -21,7 +21,10 @@ estimation column at that score. Under the GT model the conditional
 error variance is a function of the score (or, for `full` and
 `large_a`, additionally of within-score variability — see Brennan,
 1998), so per-person values within a score are not necessarily
-identical. When non-identical values are detected the row-wise mean
-is used and a single message is emitted.
+identical. Non-identical values are collapsed by the within-score
+mean. Heterogeneity is by design for `cov_xim` and the `full` and
+`large_a` estimators, so it is collapsed silently; for the
+score-conditioned estimators (`absolute`, `relative_uncorrelated`) a
+single descriptive message names the affected columns.
 }
 \keyword{internal}
