@@ -2,15 +2,13 @@ Package: csemGT
 Type: Package
 Title: Conditional Standard Error of Measurement in Generalizability Theory
 Version: 1.0.0
-Authors@R:
-    person(given = "René", family = "Gempp",
-           email = "rene.gempp@udp.cl",
-           role = c("aut", "cre", "cph"),
-           comment = c(ORCID = "0000-0002-0427-6894"))
+Authors@R: c(
+    person("Rene", "Gempp", email = "rene.gempp@udp.cl",
+           role = c("aut", "cre"))
+  )
 Description: Estimates the conditional standard error of measurement
     (CSEM) within the Generalizability Theory framework for the
-    persons-by-items univariate single-facet crossed design
-    following Brennan (1998) <doi:10.1177/014662169802200401>.
+    persons-by-items single-facet crossed design (Brennan, 1998).
     Returns person-level CSEM estimates for absolute and relative
     error variances, with three estimators of the relative error
     variance (full, large_a, uncorrelated), closed-form analytical
@@ -27,9 +25,7 @@ LazyData: true
 Depends: R (>= 4.1.0)
 Imports:
     stats,
-    utils,
-    graphics,
-    grDevices
+    utils
 Suggests:
     boot,
     mgcv,
@@ -44,6 +40,5 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 URL: https://github.com/rgempp/csemGT, https://gempp.cl/csemGT/
 BugReports: https://github.com/rgempp/csemGT/issues
-Roxygen: list(markdown = TRUE)
 Language: en-US
 Config/roxygen2/version: 8.0.0
