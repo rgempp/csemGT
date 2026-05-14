@@ -62,5 +62,10 @@ measurement in generalizability theory. *Applied Psychological
 Measurement*, *22*(4), 307–331.
 <https://doi.org/10.1177/014662169802200401>
 
-# 
+# Package index
+
+## All functions
+
+- [`is.csem()`](https://gempp.cl/csemGT/reference/is.csem.md) : Test
+  whether an object is a \`csem\` object
 

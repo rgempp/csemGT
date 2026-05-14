@@ -1,0 +1,28 @@
+# Collapse a person-level wide table to a by-score wide table
+
+Inverse of \`.expand_to_person()\`. For each distinct value of
+\`observed_score\`, returns a single row containing the value of every
+estimation column at that score. Under the GT model the conditional
+error variance is a function of the score (or, for \`full\` and
+\`large_a\`, additionally of within-score variability — see Brennan,
+1998), so per-person values within a score are not necessarily
+identical. When non-identical values are detected the row-wise mean is
+used and a single message is emitted.
+
+## Usage
+
+``` r
+.collapse_to_score(per_person_wide)
+```
+
+## Arguments
+
+- per_person_wide:
+
+  A data frame in person-level wide format with columns
+  \`observed_score\` plus any number of estimation columns.
+
+## Value
+
+A data frame with one row per distinct observed score and identifier
+columns \`observed_score\` and \`group_size\`.

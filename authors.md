@@ -2,8 +2,7 @@
 
 ## Authors
 
-- **[René Gempp](https://gempp.cl)**. Author, maintainer, copyright
-  holder. [](https://orcid.org/0000-0002-0427-6894)
+- **Rene Gempp**. Author, maintainer.
 
 ## Citation
 
@@ -16,7 +15,7 @@ Generalizability Theory*. R package version 1.0.0,
 
     @Manual{,
       title = {csemGT: Conditional Standard Error of Measurement in Generalizability Theory},
-      author = {René Gempp},
+      author = {Rene Gempp},
       year = {2026},
       note = {R package version 1.0.0},
       url = {https://github.com/rgempp/csemGT},
