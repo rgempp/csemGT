@@ -16,10 +16,18 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 
 The goal of `csemGT` is to estimate the conditional standard error of
 measurement (CSEM) within the Generalizability Theory framework for the
-persons-by-items univariate single-facet crossed design, following
-Brennan (1998). It was created and is maintained by [René
-Gempp](https://gempp.cl) as the first of a planned series of focused
-packages on CSEM, paralleling the Stata module `gtcsem`.
+univariate, single-facet, persons-by-items (p × i) crossed design,
+following Brennan (1998). It was created and is maintained by [René
+Gempp](https://gempp.cl/), paralleling the Stata module
+[`gtcsem`](https://github.com/rgempp/gtcsem).
+
+Unlike most other psychometric frameworks, Generalizability Theory
+distinguishes two types of conditional measurement error: the **absolute
+CSEM**, appropriate when decisions concern the absolute magnitude of a
+person’s score (for example, mastery classification against a fixed
+cutpoint), and the **relative CSEM**, appropriate when decisions concern
+comparisons among persons (for example, ranking or selection). `csemGT`
+estimates both.
 
 ## Installation
 
@@ -50,23 +58,13 @@ print(fit)
 plot(fit, plot_type = "both", error_types = "absolute")
 ```
 
-## Relationship with the forthcoming `csemR`
-
-`csemGT` is the first of a planned family of CSEM packages. The broader
-`csemR` package, currently in development, will integrate `csem_gt()`
-with additional estimator families (split-half methods including
-Woodruff (1990), ANOVA-based methods, and binomial/compound binomial
-models including Hanson’s 4-parameter beta compound binomial). Users of
-`csemGT` will be able to migrate to `csemR` via a simple `library()`
-change; the function signature and output object are identical.
-
 ## Citation
 
-If you use `csemGT` in published work, please cite (the entry will be
-updated once the companion paper is in press):
+If you use `csemGT` in published work, please cite it as:
 
-> Gempp, R. (in preparation). *Conditional standard errors of
-> measurement in generalizability theory*. Manuscript in preparation.
+> Gempp, R. (2026). *csemGT: Conditional Standard Error of Measurement
+> in Generalizability Theory*. R package version 1.0.0.
+> <https://github.com/rgempp/csemGT>
 
 ## References
 
