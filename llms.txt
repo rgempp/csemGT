@@ -1,0 +1,69 @@
+# csemGT
+
+The goal of `csemGT` is to estimate the conditional standard error of
+measurement (CSEM) within the Generalizability Theory framework for the
+persons-by-items univariate single-facet crossed design, following
+Brennan (1998). It was created and is maintained by [René
+Gempp](https://gempp.cl) as the first of a planned series of focused
+packages on CSEM, paralleling the Stata module `gtcsem`.
+
+## Installation
+
+You can install the development version of `csemGT` from
+[GitHub](https://github.com/rgempp/csemGT) with:
+
+``` r
+
+# Development installation
+pak::pak("rgempp/csemGT")
+# or
+remotes::install_github("rgempp/csemGT", build_vignettes = TRUE)
+```
+
+Once on CRAN:
+
+``` r
+
+install.packages("csemGT")
+```
+
+## Example
+
+``` r
+
+library(csemGT)
+data(iowa_like)
+
+fit <- csem_gt(iowa_like)
+print(fit)
+plot(fit, plot_type = "both", error_types = "absolute")
+```
+
+## Relationship with the forthcoming `csemR`
+
+`csemGT` is the first of a planned family of CSEM packages. The broader
+`csemR` package, currently in development, will integrate `csem_gt()`
+with additional estimator families (split-half methods including
+Woodruff (1990), ANOVA-based methods, and binomial/compound binomial
+models including Hanson’s 4-parameter beta compound binomial). Users of
+`csemGT` will be able to migrate to `csemR` via a simple
+[`library()`](https://rdrr.io/r/base/library.html) change; the function
+signature and output object are identical.
+
+## Citation
+
+If you use `csemGT` in published work, please cite (the entry will be
+updated once the companion paper is in press):
+
+> Gempp, R. (in preparation). *Conditional standard errors of
+> measurement in generalizability theory*. Manuscript in preparation.
+
+## References
+
+Brennan, R. L. (1998). Raw-score conditional standard errors of
+measurement in generalizability theory. *Applied Psychological
+Measurement*, *22*(4), 307–331.
+<https://doi.org/10.1177/014662169802200401>
+
+# 
+
