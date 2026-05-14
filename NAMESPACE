@@ -3,6 +3,7 @@
 S3method(as.data.frame,csem)
 S3method(by_score,csem)
 S3method(coef,csem)
+S3method(print,csem)
 export(by_score)
 export(csem_gt)
 export(is.csem)
