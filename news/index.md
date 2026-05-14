@@ -4,9 +4,10 @@
 
 ### Initial release
 
-- `csem_gt()` implements the three relative-error estimators of
-  Brennan (1998) — `full`, `large_a`, `uncorrelated` — together with the
-  closed-form absolute error variance (Brennan 1998, eq. 20).
+- [`csem_gt()`](https://gempp.cl/csemGT/reference/csem_gt.md) implements
+  the three relative-error estimators of Brennan (1998) — `full`,
+  `large_a`, `uncorrelated` — together with the closed-form absolute
+  error variance (Brennan 1998, eq. 20).
 - Closed-form analytical sampling variances and item-resampling
   bootstrap variances for all four estimators.
 - Quadratic smoothing of conditional error variances on observed score,

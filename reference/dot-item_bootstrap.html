@@ -57,7 +57,8 @@ empirical variances across the `R` replicates.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">.item_bootstrap</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  <span class="va">X</span>,</span>
+<span>  <span class="va">vc</span>,</span>
+<span>  n_items_D <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  R <span class="op">=</span> <span class="fl">1000L</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  return_replicates <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -73,9 +74,17 @@ empirical variances across the `R` replicates.</p>
 <dd><p>Numeric matrix \(N \times J\).</p></dd>
 
 
-<dt id="arg-x">X<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>Numeric vector of length \(N\); conditioning value per
-person.</p></dd>
+<dt id="arg-vc">vc<a class="anchor" aria-label="anchor" href="#arg-vc"></a></dt>
+<dd><p>Output of `.gt_variance_components(data)` — the variance
+components and per-person ingredients from the ORIGINAL sample
+(NOT from any bootstrap resample). Item bootstrap holds
+`sigma2_i` and `b_vec` fixed across replicates; this is the
+parity anchor against the legacy and `.ado` implementations.</p></dd>
+
+
+<dt id="arg-n-items-d">n_items_D<a class="anchor" aria-label="anchor" href="#arg-n-items-d"></a></dt>
+<dd><p>Positive scalar; D-study number of items.
+Defaults to `ncol(data)`.</p></dd>
 
 
 <dt id="arg-r">R<a class="anchor" aria-label="anchor" href="#arg-r"></a></dt>

@@ -11,7 +11,8 @@ across the \`R\` replicates.
 ``` r
 .item_bootstrap(
   data,
-  X,
+  vc,
+  n_items_D = NULL,
   R = 1000L,
   seed = NULL,
   return_replicates = FALSE,
@@ -25,9 +26,17 @@ across the \`R\` replicates.
 
   Numeric matrix \\N \times J\\.
 
-- X:
+- vc:
 
-  Numeric vector of length \\N\\; conditioning value per person.
+  Output of \`.gt_variance_components(data)\` — the variance components
+  and per-person ingredients from the ORIGINAL sample (NOT from any
+  bootstrap resample). Item bootstrap holds \`sigma2_i\` and \`b_vec\`
+  fixed across replicates; this is the parity anchor against the legacy
+  and \`.ado\` implementations.
+
+- n_items_D:
+
+  Positive scalar; D-study number of items. Defaults to \`ncol(data)\`.
 
 - R:
 

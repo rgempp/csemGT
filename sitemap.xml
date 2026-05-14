@@ -5,11 +5,11 @@
 <url><loc>https://gempp.cl/csemGT/index.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/news/index.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/csemGT-package.html</loc></url>
-<url><loc>https://gempp.cl/csemGT/reference/dot-add_analytical_ci.html</loc></url>
-<url><loc>https://gempp.cl/csemGT/reference/dot-add_bootstrap_ci.html</loc></url>
+<url><loc>https://gempp.cl/csemGT/reference/csem_gt.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-apply_smoother.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-collapse_to_score.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-expand_to_person.html</loc></url>
+<url><loc>https://gempp.cl/csemGT/reference/dot-gt_add_bootstrap_se.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-item_bootstrap.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-person_bootstrap.html</loc></url>
 <url><loc>https://gempp.cl/csemGT/reference/dot-restore_seed.html</loc></url>

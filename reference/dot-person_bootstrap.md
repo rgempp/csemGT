@@ -14,6 +14,8 @@ here for forward compatibility with \`csemR\`.
 ``` r
 .person_bootstrap(
   data,
+  vc,
+  n_items_D = NULL,
   X,
   paradigm = "gt",
   method = c("full", "large_a", "uncorrelated"),
@@ -31,9 +33,20 @@ here for forward compatibility with \`csemR\`.
 
   Numeric matrix \\N \times J\\.
 
+- vc:
+
+  Output of \`.gt_variance_components(data)\` from the ORIGINAL sample.
+  Used only for dimensions (N, J) and for fall-back; each replicate
+  recomputes its own vc internally.
+
+- n_items_D:
+
+  Positive scalar; D-study number of items. Defaults to \`ncol(data)\`.
+
 - X:
 
-  Numeric vector of length \\N\\; conditioning value per person.
+  Numeric vector of length \\N\\; conditioning value per person, used to
+  aggregate replicate estimates by score level.
 
 - paradigm:
 
@@ -41,7 +54,10 @@ here for forward compatibility with \`csemR\`.
 
 - method, error_type:
 
-  Resolved arguments of \`csem_gt()\`.
+  Resolved arguments of \`csem_gt()\`. Accepted for API compatibility
+  with Sprint 1 tests but not used internally — the helper always
+  returns all four estimators and downstream filtering is done by the
+  orchestrator.
 
 - R:
 
@@ -58,8 +74,9 @@ here for forward compatibility with \`csemR\`.
 
 - verbose:
 
-  Logical; emit progress messages every 100 persons.
+  Logical.
 
 ## Value
 
-A list with the same shape as \`.item_bootstrap()\`.
+A list with the same shape as \`.item_bootstrap()\` but \`type =
+"person"\`.

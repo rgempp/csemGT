@@ -2,10 +2,12 @@
 
 For each \`csem_var.\<suffix\>\` column in \`by_score\`, fits an
 ordinary least squares polynomial regression of the variance on the
-observed score, truncates fitted values at zero, takes the square root,
-and writes the result back as \`smoothed_csem.\<suffix\>\`. Smoother
-diagnostics (intercept, slope, quadratic coefficient, R^2, RMSE, sample
-size used for the fit) are returned as an \`attr(\<\>, "smooth_fits")\`.
+observed score and takes the square root of the fitted values, leaving
+the smoothed CSEM undefined (\`NA\`) where the fitted variance is
+negative, and writes the result back as \`smoothed_csem.\<suffix\>\`.
+Smoother diagnostics (intercept, slope, quadratic coefficient, R^2,
+RMSE, sample size used for the fit) are returned as an \`attr(\<\>,
+"smooth_fits")\`.
 
 ## Usage
 
@@ -50,8 +52,12 @@ size used for the fit) are returned as an \`attr(\<\>, "smooth_fits")\`.
 ## Value
 
 The input \`by_score\` with new \`smoothed_csem.\<suffix\>\` columns and
-a \`"smooth_fits"\` attribute (a named list, one element per smoothed
-suffix).
+two attributes: \`"smooth_fits"\` (a named list, one element per
+smoothed suffix) and \`"smoothing_diagnostics"\` (a list with
+\`n_floor\`, \`n_ceiling\`, \`n_fit\` — the floor, ceiling, and
+fit-sample counts when \`exclude_extremes = TRUE\`, all \`NA\` when
+extremes are retained). The \`smoother = "none"\` passthrough sets
+neither attribute.
 
 ## Details
 
