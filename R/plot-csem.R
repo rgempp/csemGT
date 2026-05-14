@@ -4,13 +4,18 @@
 # against the observed score, in base graphics, aiming at visual parity
 # with the gtcsem_plot Stata command (mini-spec v1.1 section 6.3).
 #
-# This file covers sub-phase 3.5: the plot.csem dispatcher, the package
-# palette (csem_palette(), exported) and its theme resolver, the
-# column/series resolver, and the single-panel layout .plot_csem_single()
-# for plot_type = "csem". The confidence-band layers (plot_type "ci" /
-# "both") and the side-by-side and compare layouts are added by later
-# sub-phases; until then the dispatcher stops with an explicit message on
-# those branches.
+# This file covers sub-phases 3.5 and 3.6:
+#   3.5 - the plot.csem dispatcher, the package palette (csem_palette(),
+#         exported) and its theme resolver, the column/series resolver,
+#         and the single-panel layout .plot_csem_single() for
+#         plot_type = "csem".
+#   3.6 - the confidence-band layers for plot_type = "ci" / "both":
+#         .plot_csem_bands() (delta-method bands, sources "person" and
+#         "model"), consumed by .plot_csem_single() as a ribbon drawn
+#         behind the data.
+# The side-by-side (two error types) and compare layouts are added by
+# sub-phase 3.7; until then the dispatcher stops with an explicit message
+# on those branches.
 #
 # The per-person scatter is drawn from $estimates -- one point per person
 # -- on purpose: persons with the same observed score can carry different
@@ -98,8 +103,13 @@ csem_palette <- function(which = NULL) {
 #' Translates the `error_types` / `method` / `compare_methods` arguments
 #' of [plot.csem()] into a list of series descriptors, one per estimator
 #' to be drawn. Each descriptor carries the estimator key, the names of
-#' the point-estimate and smoothed columns, a display label, a short
-#' label for legends, and the palette colour.
+#' the point-estimate, error-variance, sampling-SE and smoothed columns,
+#' a display label, a short label for legends, and the palette colour.
+#'
+#' The sampling-SE and error-variance column names are constructed but
+#' not validated here: a fit may legitimately lack `se.boot.*` (no
+#' bootstrap was run), and whether a given band source needs a given
+#' column is decided by [.plot_csem_bands()] at band-computation time.
 #'
 #' @param x A `csem` object.
 #' @param error_types Character vector of error types to plot.
@@ -132,12 +142,15 @@ csem_palette <- function(which = NULL) {
            call. = FALSE)
     }
     list(
-      key        = key,
-      csem_col   = csem_col,
-      smooth_col = paste0("smoothed_csem.", key),
-      label      = meta[[key]]$label,
-      short      = meta[[key]]$short,
-      color      = unname(pal[key])
+      key             = key,
+      csem_col        = csem_col,
+      csem_var_col    = paste0("csem_var.", key),
+      se_analytic_col = paste0("se.analytic.", key),
+      se_boot_col     = paste0("se.boot.", key),
+      smooth_col      = paste0("smoothed_csem.", key),
+      label           = meta[[key]]$label,
+      short           = meta[[key]]$short,
+      color           = unname(pal[key])
     )
   }
 
@@ -157,18 +170,152 @@ csem_palette <- function(which = NULL) {
 }
 
 
+#' Compute confidence-band vertices for a CSEM plot
+#'
+#' Builds the ribbon vertices consumed by [.plot_csem_single()] when
+#' `plot_type` is `"ci"` or `"both"`. Two band sources are supported,
+#' following the `gtcsem_plot` Stata command:
+#'
+#' * `cibands = "person"` — a band around the by-score CSEM curve,
+#'   \eqn{\widehat{csem} \pm z\, \widehat{se}}, where \eqn{\widehat{se}}
+#'   is the per-person sampling SE of the CSEM collapsed to the score
+#'   level (`se.analytic.*` or `se.boot.*`, selected by `asemethod`).
+#'   The lower edge is truncated at zero. The ribbon is restricted to
+#'   the non-extreme score range when the fit excluded extremes from
+#'   the smoother (mirroring the `keep` filter of `gtcsem_plot`).
+#' * `cibands = "model"` — a band around the quadratic smoother. The
+#'   per-person error variance is refit on the observed score and its
+#'   square by ordinary least squares, over the same non-extreme sample
+#'   the smoother used. Because that is the same fit `.apply_smoother()`
+#'   performs, the band centre coincides with the stored
+#'   `smoothed_csem.*` curve; `predict(se.fit = TRUE)` supplies the SE
+#'   of the mean fit, which the delta method converts to the CSEM scale
+#'   as \eqn{se.fit / (2\, \widehat{csem})}. `asemethod` is ignored for
+#'   this source.
+#'
+#' @param x A `csem` object.
+#' @param series A single series descriptor from [.resolve_plot_columns()].
+#' @param cibands Band source: `"person"` or `"model"`.
+#' @param asemethod Sampling-SE source for `cibands = "person"`:
+#'   `"analytical"` or `"bootstrap"`. Ignored when `cibands = "model"`.
+#' @param ci_level Confidence level for the band.
+#'
+#' @return A list with numeric vectors `x` (the sorted score grid),
+#'   `lo` and `hi` (the ribbon edges) and `center` (the curve the band
+#'   is built around).
+#'
+#' @keywords internal
+.plot_csem_bands <- function(x, series, cibands, asemethod, ci_level) {
+
+  z <- stats::qnorm(1 - (1 - ci_level) / 2)
+
+  if (identical(cibands, "person")) {
+    # Per-person band, collapsed to the score level: csem +/- z * se on
+    # the by-score table. asemethod selects the sampling-SE column.
+    se_col <- if (identical(asemethod, "analytical")) {
+      series$se_analytic_col
+    } else {
+      series$se_boot_col
+    }
+    bs <- x$by_score
+    if (!se_col %in% names(bs) || all(is.na(bs[[se_col]]))) {
+      stop("plot.csem(): cibands = \"person\" with asemethod = \"",
+           asemethod, "\" needs the column '", se_col,
+           "', but the fitted object does not carry it",
+           if (identical(asemethod, "bootstrap"))
+             "; re-run csem_gt() with bootstrap = TRUE." else ".",
+           call. = FALSE)
+    }
+
+    bs <- bs[order(bs$observed_score), , drop = FALSE]
+
+    # Match the ribbon sample to the smoother sample: drop floor/ceiling
+    # rows when exclude_extremes was used (smoothed_csem is NA there).
+    keep <- if (series$smooth_col %in% names(bs)) {
+      !is.na(bs[[series$smooth_col]])
+    } else {
+      rep(TRUE, nrow(bs))
+    }
+
+    csem_bs <- bs[[series$csem_col]][keep]
+    se_bs   <- bs[[se_col]][keep]
+
+    return(list(
+      x      = bs$observed_score[keep],
+      lo     = pmax(0, csem_bs - z * se_bs),
+      hi     = csem_bs + z * se_bs,
+      center = csem_bs
+    ))
+  }
+
+  # cibands == "model": quadratic refit of the per-person error variance.
+  est <- x$estimates
+
+  # Same sample .apply_smoother() fits on: every person, or the
+  # non-extreme persons when the fit excluded extremes from the
+  # smoother. lm()'s default na.action drops any person whose error
+  # variance is NA, exactly as the smoother does. Fitting on this
+  # sample makes the refit coefficients -- hence the band centre --
+  # reproduce the stored smoothed_csem.* curve.
+  keep <- if (isTRUE(x$arguments$exclude_extremes)) {
+    !est$extreme
+  } else {
+    rep(TRUE, nrow(est))
+  }
+
+  fit_df <- data.frame(
+    y = est[[series$csem_var_col]][keep],
+    x = est$observed_score[keep]
+  )
+
+  # Quadratic OLS of the per-person error variance on the observed
+  # score. The column space is identical to the one .apply_smoother()
+  # fits, so the coefficients -- hence the band centre -- coincide with
+  # the stored smoother; predict(se.fit = TRUE) supplies the SE of the
+  # mean fit that the smoother does not store. Matches the cibands(model)
+  # refit of gtcsem_plot.ado.
+  fit  <- stats::lm(y ~ x + I(x^2), data = fit_df)
+  score_grid <- sort(unique(fit_df$x))
+  pred <- stats::predict(fit, newdata = data.frame(x = score_grid),
+                         se.fit = TRUE)
+
+  # predict.lm() names its output by row; strip the names so the band
+  # vectors are clean unnamed numerics.
+  yhat   <- unname(pred$fit)
+  se_fit <- unname(pred$se.fit)
+
+  csem_hat <- sqrt(pmax(yhat, 0))
+  se_csem  <- ifelse(csem_hat > 0, se_fit / (2 * csem_hat), NA_real_)
+
+  list(
+    x      = score_grid,
+    lo     = pmax(0, csem_hat - z * se_csem),
+    hi     = csem_hat + z * se_csem,
+    center = csem_hat
+  )
+}
+
+
 #' Draw a single-panel CSEM plot
 #'
-#' Implements the single-panel layout of [plot.csem()] for
-#' `plot_type = "csem"`: a per-person scatter of the conditional SEM
-#' against the observed score, with an optional quadratic-smoother curve.
-#' The scatter is drawn from the per-person `$estimates` table; the
-#' smoother curve from the score-level `$by_score` table.
+#' Implements the single-panel layout of [plot.csem()]: a per-person
+#' scatter of the conditional SEM against the observed score, an optional
+#' quadratic-smoother curve, and an optional confidence-band ribbon. The
+#' scatter is drawn from the per-person `$estimates` table; the smoother
+#' curve from the score-level `$by_score` table; the ribbon from the
+#' vertices computed by [.plot_csem_bands()].
+#'
+#' Layering, back to front: faint horizontal grid, the confidence ribbon,
+#' the per-person scatter, the smoother curve.
 #'
 #' @param x A `csem` object.
 #' @param series A single series descriptor from [.resolve_plot_columns()].
 #' @param theme_settings A list from [.resolve_plot_theme()].
 #' @param show_smooth Logical; draw the smoother curve when available.
+#' @param plot_type One of `"csem"`, `"ci"`, `"both"`. The scatter is
+#'   drawn for `"csem"` and `"both"`; the ribbon for `"ci"` and `"both"`.
+#' @param bands A list of ribbon vertices from [.plot_csem_bands()], or
+#'   `NULL` when `plot_type = "csem"`.
 #' @param col,pch,cex,lwd,lty,alpha Graphical overrides; `NULL` means
 #'   "use the theme or calibrated default".
 #' @param main,sub,xlab,ylab,ylim,xlim Annotation and axis overrides;
@@ -181,14 +328,16 @@ csem_palette <- function(which = NULL) {
 #'
 #' @keywords internal
 .plot_csem_single <- function(x, series, theme_settings, show_smooth,
+                              plot_type, bands,
                               col, pch, cex, lwd, lty, alpha,
                               main, sub, xlab, ylab, ylim, xlim, add, ...) {
 
   est <- x$estimates
   bs  <- x$by_score[order(x$by_score$observed_score), ]
 
-  series_col <- col %||% series$color
-  cex        <- if (is.null(cex)) 0.7 else cex
+  series_col   <- col %||% series$color
+  cex          <- if (is.null(cex)) 0.7 else cex
+  draw_scatter <- plot_type %in% c("csem", "both")
 
   # Match the scatter sample to the smoother sample, so the cloud and the
   # fitted curve cover the same persons. With exclude_extremes the
@@ -228,9 +377,15 @@ csem_palette <- function(which = NULL) {
     xlab <- xlab %||% "Observed score"
     ylab <- ylab %||% "Conditional SEM"
 
-    y_all <- c(yv, if (has_smooth) sm_y else NULL)
+    y_all <- c(if (draw_scatter) yv,
+               if (has_smooth) sm_y,
+               if (!is.null(bands)) c(bands$lo, bands$hi))
     if (is.null(ylim)) ylim <- c(0, max(y_all, na.rm = TRUE) * 1.05)
-    if (is.null(xlim)) xlim <- range(xv, na.rm = TRUE)
+
+    x_all <- c(if (draw_scatter) xv,
+               if (has_smooth) sm_x,
+               if (!is.null(bands)) bands$x)
+    if (is.null(xlim)) xlim <- range(x_all, na.rm = TRUE)
 
     op <- graphics::par(no.readonly = TRUE)
     on.exit(graphics::par(op))
@@ -245,8 +400,20 @@ csem_palette <- function(which = NULL) {
                      col = theme_settings$grid, lwd = 0.5)
   }
 
-  graphics::points(xv, yv, pch = pch, cex = cex,
-                   col = grDevices::adjustcolor(series_col, alpha.f = alpha))
+  # Confidence-band ribbon, drawn behind the scatter and the smoother.
+  if (!is.null(bands)) {
+    graphics::polygon(
+      c(bands$x, rev(bands$x)),
+      c(bands$lo, rev(bands$hi)),
+      col    = grDevices::adjustcolor(series_col, alpha.f = 0.20),
+      border = NA
+    )
+  }
+
+  if (isTRUE(draw_scatter)) {
+    graphics::points(xv, yv, pch = pch, cex = cex,
+                     col = grDevices::adjustcolor(series_col, alpha.f = alpha))
+  }
 
   if (has_smooth) {
     graphics::lines(sm_x, sm_y, col = series_col, lwd = lwd, lty = lty)
@@ -265,6 +432,25 @@ csem_palette <- function(which = NULL) {
 #' so that the within-score spread of the CSEM is visible -- and the
 #' optional quadratic-smoother curve from the `$by_score` table.
 #'
+#' @details
+#' When `plot_type` is `"ci"` or `"both"` a confidence-band ribbon is
+#' added. Two band sources are available through `cibands`:
+#'
+#' * `"person"` (the default) draws \eqn{\widehat{csem} \pm z\,
+#'   \widehat{se}} around the by-score CSEM curve, using the per-person
+#'   sampling SE of the CSEM. `asemethod` selects whether that SE is the
+#'   analytical or the bootstrap one; the bootstrap SE is only available
+#'   when `csem_gt()` was run with `bootstrap = TRUE`.
+#' * `"model"` draws a band around the quadratic smoother. The
+#'   per-person error variance is refit on the observed score and its
+#'   square, and the SE of the mean fit is converted to the CSEM scale
+#'   by the delta method. `asemethod` is ignored for this source.
+#'
+#' The confidence level is `ci_level` (defaulting to the level stored in
+#' `x`), so a level different from the one used at fitting time can be
+#' requested at plot time. The lower edge of every band is truncated at
+#' zero.
+#'
 #' @param x A `csem` object.
 #' @param plot_type One of `"csem"` (the per-person scatter, the
 #'   default), `"ci"` (confidence bands only), or `"both"`.
@@ -279,10 +465,10 @@ csem_palette <- function(which = NULL) {
 #' @param compare_methods Logical; overlay the three relative-error
 #'   estimators on one panel. Defaults to `FALSE`.
 #' @param cibands Source of the confidence bands when `plot_type` is
-#'   `"ci"` or `"both"`: `"person"` (per-person intervals) or `"model"`
-#'   (a band around the quadratic fit).
-#' @param asemethod Sampling-variance source for the confidence bands:
-#'   `"analytical"` or `"bootstrap"`.
+#'   `"ci"` or `"both"`: `"person"` (per-person intervals collapsed to
+#'   the score level) or `"model"` (a band around the quadratic fit).
+#' @param asemethod Sampling-variance source for the `"person"` bands:
+#'   `"analytical"` or `"bootstrap"`. Ignored when `cibands = "model"`.
 #' @param ci_level Confidence level for the bands. Defaults to the level
 #'   stored in `x`.
 #' @param theme Plot theme. csemGT ships a single own theme, `"csem"`.
@@ -293,7 +479,8 @@ csem_palette <- function(which = NULL) {
 #' @param alpha Point transparency in `[0, 1]`. `NULL` calibrates it to
 #'   the number of plotted persons.
 #' @param main,sub,xlab,ylab Title, subtitle and axis labels. `NULL`
-#'   selects a sensible default.
+#'   selects a sensible default; for `plot_type` `"ci"` / `"both"` the
+#'   default subtitle reports the confidence level and band source.
 #' @param ylim,xlim Axis limits. `NULL` selects a sensible default.
 #' @param add Logical; if `TRUE`, draw onto the current plot instead of
 #'   opening a new one.
@@ -310,6 +497,7 @@ csem_palette <- function(which = NULL) {
 #' d <- matrix(rbinom(100 * 14, 1, 0.5), nrow = 100)
 #' fit <- csem_gt(d, error_type = "absolute")
 #' plot(fit)
+#' plot(fit, plot_type = "both")
 #'
 #' @export
 plot.csem <- function(x,
@@ -350,10 +538,10 @@ plot.csem <- function(x,
 
   theme_settings <- .resolve_plot_theme(theme)
 
-  # Deferred-branch guards. The confidence-band layers and the
-  # side-by-side and compare layouts are added by later sub-phases of
-  # Sprint 3; until then those branches stop with an explicit message
-  # rather than silently doing something else.
+  # Deferred-branch guards. The side-by-side (two error types) and
+  # compare layouts are added by sub-phase 3.7 of Sprint 3; until then
+  # those branches stop with an explicit message rather than silently
+  # doing something else.
   if (isTRUE(compare_methods)) {
     stop("compare_methods is not yet available in plot.csem; ",
          "plot a single estimator with error_types and method.",
@@ -364,16 +552,29 @@ plot.csem <- function(x,
          "in plot.csem; pass error_types = \"absolute\" or \"relative\".",
          call. = FALSE)
   }
-  if (plot_type %in% c("ci", "both")) {
-    stop("confidence-band layers (plot_type \"ci\" / \"both\") are not yet ",
-         "available in plot.csem; use plot_type = \"csem\".",
-         call. = FALSE)
-  }
 
   series <- .resolve_plot_columns(x, error_types, method, compare_methods)
 
+  # Confidence-band layer. .plot_csem_bands() returns the ribbon vertices
+  # for plot_type "ci" / "both"; for "csem" no band is computed and the
+  # scatter is drawn alone. When the user did not set an explicit
+  # subtitle, a default one reporting the level and band source is used.
+  bands <- NULL
+  if (plot_type %in% c("ci", "both")) {
+    bands <- .plot_csem_bands(x, series[[1L]], cibands, asemethod, ci_level)
+    if (is.null(sub)) {
+      pct <- formatC(ci_level * 100, format = "g")
+      sub <- if (identical(cibands, "model")) {
+        paste0(pct, "% CI bands around quadratic fit")
+      } else {
+        paste0(pct, "% CI bands using ", asemethod, " SE")
+      }
+    }
+  }
+
   .plot_csem_single(x, series[[1L]], theme_settings,
                     show_smooth = show_smooth,
+                    plot_type = plot_type, bands = bands,
                     col = col, pch = pch, cex = cex, lwd = lwd, lty = lty,
                     alpha = alpha, main = main, sub = sub,
                     xlab = xlab, ylab = ylab, ylim = ylim, xlim = xlim,

@@ -9,6 +9,8 @@
   series,
   theme_settings,
   show_smooth,
+  plot_type,
+  bands,
   col,
   pch,
   cex,
@@ -34,6 +36,12 @@
 
 \item{show_smooth}{Logical; draw the smoother curve when available.}
 
+\item{plot_type}{One of `"csem"`, `"ci"`, `"both"`. The scatter is
+drawn for `"csem"` and `"both"`; the ribbon for `"ci"` and `"both"`.}
+
+\item{bands}{A list of ribbon vertices from [.plot_csem_bands()], or
+`NULL` when `plot_type = "csem"`.}
+
 \item{col, pch, cex, lwd, lty, alpha}{Graphical overrides; `NULL` means
 "use the theme or calibrated default".}
 
@@ -49,10 +57,15 @@ opening a new one.}
 `NULL`, invisibly.
 }
 \description{
-Implements the single-panel layout of [plot.csem()] for
-`plot_type = "csem"`: a per-person scatter of the conditional SEM
-against the observed score, with an optional quadratic-smoother curve.
-The scatter is drawn from the per-person `$estimates` table; the
-smoother curve from the score-level `$by_score` table.
+Implements the single-panel layout of [plot.csem()]: a per-person
+scatter of the conditional SEM against the observed score, an optional
+quadratic-smoother curve, and an optional confidence-band ribbon. The
+scatter is drawn from the per-person `$estimates` table; the smoother
+curve from the score-level `$by_score` table; the ribbon from the
+vertices computed by [.plot_csem_bands()].
+}
+\details{
+Layering, back to front: faint horizontal grid, the confidence ribbon,
+the per-person scatter, the smoother curve.
 }
 \keyword{internal}

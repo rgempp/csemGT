@@ -52,11 +52,11 @@ it is available. Defaults to `TRUE`.}
 estimators on one panel. Defaults to `FALSE`.}
 
 \item{cibands}{Source of the confidence bands when `plot_type` is
-`"ci"` or `"both"`: `"person"` (per-person intervals) or `"model"`
-(a band around the quadratic fit).}
+`"ci"` or `"both"`: `"person"` (per-person intervals collapsed to
+the score level) or `"model"` (a band around the quadratic fit).}
 
-\item{asemethod}{Sampling-variance source for the confidence bands:
-`"analytical"` or `"bootstrap"`.}
+\item{asemethod}{Sampling-variance source for the `"person"` bands:
+`"analytical"` or `"bootstrap"`. Ignored when `cibands = "model"`.}
 
 \item{ci_level}{Confidence level for the bands. Defaults to the level
 stored in `x`.}
@@ -73,7 +73,8 @@ theme palette.}
 the number of plotted persons.}
 
 \item{main, sub, xlab, ylab}{Title, subtitle and axis labels. `NULL`
-selects a sensible default.}
+selects a sensible default; for `plot_type` `"ci"` / `"both"` the
+default subtitle reports the confidence level and band source.}
 
 \item{ylim, xlim}{Axis limits. `NULL` selects a sensible default.}
 
@@ -94,11 +95,31 @@ scatter is drawn from the `$estimates` table -- one point per person,
 so that the within-score spread of the CSEM is visible -- and the
 optional quadratic-smoother curve from the `$by_score` table.
 }
+\details{
+When `plot_type` is `"ci"` or `"both"` a confidence-band ribbon is
+added. Two band sources are available through `cibands`:
+
+* `"person"` (the default) draws \eqn{\widehat{csem} \pm z\,
+  \widehat{se}} around the by-score CSEM curve, using the per-person
+  sampling SE of the CSEM. `asemethod` selects whether that SE is the
+  analytical or the bootstrap one; the bootstrap SE is only available
+  when `csem_gt()` was run with `bootstrap = TRUE`.
+* `"model"` draws a band around the quadratic smoother. The
+  per-person error variance is refit on the observed score and its
+  square, and the SE of the mean fit is converted to the CSEM scale
+  by the delta method. `asemethod` is ignored for this source.
+
+The confidence level is `ci_level` (defaulting to the level stored in
+`x`), so a level different from the one used at fitting time can be
+requested at plot time. The lower edge of every band is truncated at
+zero.
+}
 \examples{
 set.seed(1)
 d <- matrix(rbinom(100 * 14, 1, 0.5), nrow = 100)
 fit <- csem_gt(d, error_type = "absolute")
 plot(fit)
+plot(fit, plot_type = "both")
 
 }
 \seealso{

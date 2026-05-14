@@ -24,7 +24,13 @@ A list of series descriptors (each itself a list).
 Translates the `error_types` / `method` / `compare_methods` arguments
 of [plot.csem()] into a list of series descriptors, one per estimator
 to be drawn. Each descriptor carries the estimator key, the names of
-the point-estimate and smoothed columns, a display label, a short
-label for legends, and the palette colour.
+the point-estimate, error-variance, sampling-SE and smoothed columns,
+a display label, a short label for legends, and the palette colour.
+}
+\details{
+The sampling-SE and error-variance column names are constructed but
+not validated here: a fit may legitimately lack `se.boot.*` (no
+bootstrap was run), and whether a given band source needs a given
+column is decided by [.plot_csem_bands()] at band-computation time.
 }
 \keyword{internal}
