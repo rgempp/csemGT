@@ -41,7 +41,7 @@
 drawn for `"csem"` and `"both"`; the ribbon for `"ci"` and `"both"`.}
 
 \item{bands}{A list of ribbon vertices from [.plot_csem_bands()], or
-`NULL` when `plot_type = "csem"`.}
+`NULL` when no ribbon is drawn.}
 
 \item{manage_par}{Logical; if `TRUE` (the default) the helper saves,
 sets and restores the graphical parameters (`mar`, `mgp`, `tcl`,
