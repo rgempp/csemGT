@@ -1,17 +1,18 @@
 # Tests for plot.csem and the plotting helpers in R/plot-csem.R:
 # csem_palette(), .resolve_plot_theme(), .resolve_plot_columns(),
 # .plot_csem_bands(), .plot_csem_single(), .plot_csem_sidebyside(),
-# and the plot.csem dispatcher.
+# .plot_csem_compare(), and the plot.csem dispatcher.
 #
 # Sub-phase 3.5 covers the single-panel plot_type = "csem" layout;
 # sub-phase 3.6 adds the confidence-band layers (plot_type "ci" / "both",
 # cibands "person" / "model"); sub-phase 3.7a adds the side-by-side
-# layout for two error types. The visual-parity checks (vdiffr against
-# the four paper figures) belong to sub-phase 3.7c; here the plotting
-# paths are exercised as smoke tests -- they must run, return invisibly,
-# and stop cleanly on the branches that are not yet wired -- while the
-# pure helpers (palette, theme, column and band resolvers, the
-# side-by-side y-axis sharing) are unit-tested directly.
+# layout for two error types; sub-phase 3.7b adds the compare layout
+# overlaying the three relative estimators. The visual-parity checks
+# (vdiffr against the four paper figures) belong to sub-phase 3.7c; here
+# the plotting paths are exercised as smoke tests -- they must run,
+# return invisibly, and stop cleanly on the branches that are not yet
+# wired -- while the pure helpers (palette, theme, column and band
+# resolvers, the shared-y-axis logic) are unit-tested directly.
 
 .make_plot_data <- function(seed = 11L, N = 120L, J = 16L) {
   set.seed(seed)
@@ -372,14 +373,92 @@ test_that("plot.csem side-by-side draws model bands without error", {
 
 
 # -----------------------------------------------------------------------------
-# plot.csem -- deferred-branch guards
+# plot.csem -- compare layout (three relative estimators)
 # -----------------------------------------------------------------------------
 
-test_that("plot.csem stops on compare_methods (deferred branch)", {
+test_that("plot.csem draws the compare layout without error", {
   fit <- fit_rel()
-  expect_error(with_null_device(plot(fit, compare_methods = TRUE)),
-               "compare_methods")
+  expect_no_error(with_null_device(plot(fit, compare_methods = TRUE)))
 })
+
+test_that("plot.csem compare draws the per-person scatter on request", {
+  fit <- fit_rel()
+  expect_no_error(with_null_device(
+    plot(fit, compare_methods = TRUE, compare_points = TRUE)))
+})
+
+test_that("plot.csem compare returns the object invisibly", {
+  fit <- fit_rel()
+  result <- with_null_device(
+    expect_invisible(plot(fit, compare_methods = TRUE)))
+  expect_identical(result, fit)
+})
+
+test_that("plot.csem compare shares the y axis across the three series", {
+  fit         <- fit_rel()
+  series_list <- .resolve_plot_columns(fit, "relative", NULL, TRUE)
+  th          <- .resolve_plot_theme("csem")
+  yl <- with_null_device(
+    .plot_csem_compare(fit, series_list, th, compare_points = FALSE))
+  expect_equal(yl[[1L]], 0)
+  # Covers every estimator's smoother curve.
+  for (s in series_list) {
+    expect_gte(yl[[2L]], max(fit$by_score[[s$smooth_col]], na.rm = TRUE))
+  }
+})
+
+test_that("plot.csem compare rejects add = TRUE", {
+  fit <- fit_rel()
+  expect_error(
+    with_null_device(plot(fit, compare_methods = TRUE, add = TRUE)),
+    "compare layout")
+})
+
+test_that("plot.csem compare rejects confidence-band plot types", {
+  fit <- fit_rel()
+  expect_error(
+    with_null_device(plot(fit, compare_methods = TRUE, plot_type = "ci")),
+    "compare layout")
+  expect_error(
+    with_null_device(plot(fit, compare_methods = TRUE, plot_type = "both")),
+    "compare layout")
+})
+
+test_that("plot.csem compare needs something to draw", {
+  fit <- fit_rel()
+  expect_error(
+    with_null_device(plot(fit, compare_methods = TRUE,
+                          show_smooth = FALSE, compare_points = FALSE)),
+    "nothing to draw")
+})
+
+test_that("plot.csem compare needs a smoother unless compare_points is set", {
+  fit <- suppressMessages(
+    csem_gt(.make_plot_data(), error_type = "relative",
+            method = c("full", "large_a", "uncorrelated"),
+            smoother = "none"))
+  # No smoother and no scatter -> nothing to overlay.
+  expect_error(
+    with_null_device(plot(fit, compare_methods = TRUE)),
+    "nothing to draw")
+  # ...but the per-person scatter still works without a smoother.
+  expect_no_error(with_null_device(
+    plot(fit, compare_methods = TRUE, compare_points = TRUE,
+         show_smooth = FALSE)))
+})
+
+test_that("plot.csem compare errors when an estimator is missing from the fit", {
+  fit <- suppressMessages(
+    csem_gt(.make_plot_data(), error_type = "relative", method = "full"))
+  expect_error(
+    with_null_device(plot(fit, compare_methods = TRUE)),
+    "csem\\.relative_large_a")
+})
+
+
+# -----------------------------------------------------------------------------
+# plot.csem -- remaining guards
+# -----------------------------------------------------------------------------
 
 test_that("plot.csem errors when asked for an estimator the fit lacks", {
   fit <- fit_abs()

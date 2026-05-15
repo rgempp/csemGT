@@ -4,7 +4,7 @@
 # against the observed score, in base graphics, aiming at visual parity
 # with the gtcsem_plot Stata command (mini-spec v1.1 section 6.3).
 #
-# This file covers sub-phases 3.5, 3.6 and 3.7a:
+# This file covers sub-phases 3.5, 3.6, 3.7a and 3.7b:
 #   3.5  - the plot.csem dispatcher, the package palette (csem_palette(),
 #          exported) and its theme resolver, the column/series resolver,
 #          and the single-panel layout .plot_csem_single() for
@@ -16,8 +16,8 @@
 #   3.7a - the side-by-side layout for two error types:
 #          .plot_csem_sidebyside() draws the absolute and relative
 #          panels on one shared y-axis.
-# The compare layout (compare_methods = TRUE) is added by sub-phase
-# 3.7b; until then that branch stops with an explicit message.
+#   3.7b - the compare layout: .plot_csem_compare() overlays the three
+#          relative-error estimators on one panel with a legend.
 #
 # The per-person scatter is drawn from $estimates -- one point per person
 # -- on purpose: persons with the same observed score can carry different
@@ -317,7 +317,7 @@ csem_palette <- function(which = NULL) {
 #' @param plot_type One of `"csem"`, `"ci"`, `"both"`. The scatter is
 #'   drawn for `"csem"` and `"both"`; the ribbon for `"ci"` and `"both"`.
 #' @param bands A list of ribbon vertices from [.plot_csem_bands()], or
-#'   `NULL` when `plot_type = "csem"`.
+#'   `NULL` when no ribbon is drawn.
 #' @param manage_par Logical; if `TRUE` (the default) the helper saves,
 #'   sets and restores the graphical parameters (`mar`, `mgp`, `tcl`,
 #'   `las`) itself. The side-by-side orchestrator passes `FALSE` so it
@@ -541,6 +541,105 @@ csem_palette <- function(which = NULL) {
 }
 
 
+#' Draw the compare layout overlaying the relative estimators
+#'
+#' Implements the compare layout of [plot.csem()]: the three
+#' relative-error estimators (`relative_full`, `relative_large_a`,
+#' `relative_uncorrelated`) are overlaid on one panel with a legend, so
+#' their smoother curves can be read against each other. By default only
+#' the curves are drawn; `compare_points = TRUE` adds the per-person
+#' scatter for every estimator.
+#'
+#' Each estimator keeps its own palette colour, so a user-supplied `col`
+#' is not applied here. No confidence ribbon is drawn -- three
+#' overlapping ribbons would not be legible -- so `bands` is `NULL`
+#' throughout and the inner `plot_type` only toggles the scatter:
+#' `"csem"` draws it, `"ci"` (with `bands = NULL`) suppresses both the
+#' scatter and the ribbon, leaving the curve alone.
+#'
+#' @param x A `csem` object.
+#' @param series_list A list of three series descriptors from
+#'   [.resolve_plot_columns()].
+#' @param theme_settings A list from [.resolve_plot_theme()].
+#' @param compare_points Logical; also draw the per-person scatter for
+#'   each estimator.
+#' @param show_smooth Logical; draw the smoother curves.
+#' @param pch,cex,lwd,lty,alpha Graphical overrides passed through to
+#'   each series.
+#' @param main,sub,xlab,ylab,ylim,xlim Annotation and axis overrides.
+#'   `main` defaults to the shared `"Relative conditional SEM"` label;
+#'   `ylim`, when `NULL`, is shared across the three series.
+#' @param ... Passed to the underlying `plot()` call.
+#'
+#' @return The y-axis limits used, invisibly.
+#'
+#' @keywords internal
+.plot_csem_compare <- function(x, series_list, theme_settings,
+                               compare_points = FALSE,
+                               show_smooth    = TRUE,
+                               pch = 16, cex = NULL, lwd = 2, lty = 1,
+                               alpha = NULL,
+                               main = NULL, sub = NULL,
+                               xlab = NULL, ylab = NULL,
+                               ylim = NULL, xlim = NULL, ...) {
+
+  # No ribbon in the compare layout; the inner plot_type only decides
+  # whether the per-person scatter is drawn. "csem" draws it; "ci" with
+  # bands = NULL draws neither scatter nor ribbon, leaving the curve.
+  inner_plot_type <- if (isTRUE(compare_points)) "csem" else "ci"
+
+  # Shared y-axis over the three series: the smoother curves always
+  # (when show_smooth), the per-person scatter only when compare_points.
+  if (is.null(ylim)) {
+    series_ymax <- function(s) {
+      vals <- numeric(0)
+      if (isTRUE(compare_points)) {
+        vals <- c(vals, x$estimates[[s$csem_col]])
+      }
+      if (isTRUE(show_smooth) && s$smooth_col %in% names(x$by_score)) {
+        vals <- c(vals, x$by_score[[s$smooth_col]])
+      }
+      max(vals, na.rm = TRUE)
+    }
+    ymax <- max(vapply(series_list, series_ymax, numeric(1)))
+    ylim <- c(0, ymax * 1.05)
+  }
+
+  # All three relative estimators share the "Relative conditional SEM"
+  # label; use it as the default title.
+  main <- main %||% series_list[[1L]]$label
+
+  # The first series opens the panel; the rest are overlaid with
+  # add = TRUE. Each series is drawn in its own palette colour.
+  for (i in seq_along(series_list)) {
+    .plot_csem_single(x, series_list[[i]], theme_settings,
+                      show_smooth = show_smooth,
+                      plot_type = inner_plot_type, bands = NULL,
+                      manage_par = TRUE,
+                      col = series_list[[i]]$color,
+                      pch = pch, cex = cex, lwd = lwd, lty = lty,
+                      alpha = alpha,
+                      main = main, sub = sub, xlab = xlab, ylab = ylab,
+                      ylim = ylim, xlim = xlim,
+                      add = (i > 1L), ...)
+  }
+
+  # Legend: one entry per estimator, in its palette colour. The point
+  # marker is shown in the key only when the scatter is drawn.
+  graphics::legend(
+    "topright",
+    legend = vapply(series_list, `[[`, character(1), "short"),
+    col    = vapply(series_list, `[[`, character(1), "color"),
+    lwd    = lwd,
+    lty    = lty,
+    pch    = if (isTRUE(compare_points)) pch else NA,
+    bty    = "n"
+  )
+
+  invisible(ylim)
+}
+
+
 #' Plot a `csem` object
 #'
 #' Draws a Brennan-style plot of the per-person conditional standard
@@ -575,9 +674,18 @@ csem_palette <- function(which = NULL) {
 #' scale. Each panel keeps its own title; a user-supplied `main` is not
 #' applied in this layout, and `add = TRUE` is not supported.
 #'
+#' When `compare_methods = TRUE` the three relative-error estimators are
+#' overlaid on one panel with a legend, to compare their smoother curves
+#' directly. The per-person scatter is omitted by default -- three
+#' clouds would not be legible -- and added for every estimator by
+#' `compare_points = TRUE`. Confidence bands are not available in this
+#' layout, `add = TRUE` is not supported, and `col` is not applied (each
+#' estimator keeps its palette colour).
+#'
 #' @param x A `csem` object.
 #' @param plot_type One of `"csem"` (the per-person scatter, the
-#'   default), `"ci"` (confidence bands only), or `"both"`.
+#'   default), `"ci"` (confidence bands only), or `"both"`. Not used by
+#'   the compare layout.
 #' @param error_types Character vector selecting the error type(s) to
 #'   plot: `"absolute"`, `"relative"`, or both. Two error types are
 #'   drawn as a side-by-side pair of panels. Defaults to the error types
@@ -588,7 +696,11 @@ csem_palette <- function(which = NULL) {
 #' @param show_smooth Logical; overlay the quadratic-smoother curve when
 #'   it is available. Defaults to `TRUE`.
 #' @param compare_methods Logical; overlay the three relative-error
-#'   estimators on one panel. Defaults to `FALSE`.
+#'   estimators on one panel with a legend. Defaults to `FALSE`.
+#' @param compare_points Logical; in the compare layout
+#'   (`compare_methods = TRUE`), also draw the per-person scatter for
+#'   each estimator. Defaults to `FALSE`, which overlays the smoother
+#'   curves alone.
 #' @param cibands Source of the confidence bands when `plot_type` is
 #'   `"ci"` or `"both"`: `"person"` (per-person intervals collapsed to
 #'   the score level) or `"model"` (a band around the quadratic fit).
@@ -598,7 +710,7 @@ csem_palette <- function(which = NULL) {
 #'   stored in `x`.
 #' @param theme Plot theme. csemGT ships a single own theme, `"csem"`.
 #' @param col Override colour for the plotted series. `NULL` uses the
-#'   theme palette.
+#'   theme palette. Not applied in the compare layout.
 #' @param pch,cex,lwd,lty Graphical parameters for the scatter points
 #'   (`pch`, `cex`) and the smoother curve (`lwd`, `lty`).
 #' @param alpha Point transparency in `[0, 1]`. `NULL` calibrates it to
@@ -609,9 +721,10 @@ csem_palette <- function(which = NULL) {
 #'   the side-by-side layout `main` is not applied (each panel keeps its
 #'   own title).
 #' @param ylim,xlim Axis limits. `NULL` selects a sensible default; the
-#'   side-by-side layout always shares one `ylim` across both panels.
+#'   side-by-side and compare layouts share one `ylim` across series.
 #' @param add Logical; if `TRUE`, draw onto the current plot instead of
-#'   opening a new one. Not supported with the side-by-side layout.
+#'   opening a new one. Not supported with the side-by-side or compare
+#'   layouts.
 #' @param ... Additional graphical parameters passed to the underlying
 #'   `plot()` call.
 #'
@@ -634,6 +747,7 @@ plot.csem <- function(x,
                       method          = NULL,
                       show_smooth     = TRUE,
                       compare_methods = FALSE,
+                      compare_points  = FALSE,
                       cibands         = c("person", "model"),
                       asemethod       = c("analytical", "bootstrap"),
                       ci_level        = NULL,
@@ -666,15 +780,42 @@ plot.csem <- function(x,
 
   theme_settings <- .resolve_plot_theme(theme)
 
-  # Deferred-branch guard: the compare layout is added by sub-phase 3.7b
-  # of Sprint 3; until then that branch stops with an explicit message.
-  if (isTRUE(compare_methods)) {
-    stop("compare_methods is not yet available in plot.csem; ",
-         "plot a single estimator with error_types and method.",
-         call. = FALSE)
-  }
-
   series <- .resolve_plot_columns(x, error_types, method, compare_methods)
+
+  # Compare layout: the three relative estimators overlaid on one panel
+  # with a legend. Confidence bands are not available here (three
+  # overlapping ribbons would not be legible) and add = TRUE is rejected,
+  # as the layout opens its own panel.
+  if (isTRUE(compare_methods)) {
+    if (isTRUE(add)) {
+      stop("add = TRUE is not supported with the compare layout; ",
+           "plot a single estimator to use add.", call. = FALSE)
+    }
+    if (plot_type %in% c("ci", "both")) {
+      stop("confidence bands are not available with the compare layout; ",
+           "three overlapping ribbons would not be legible. Use ",
+           "plot_type = \"csem\" (the default).", call. = FALSE)
+    }
+    if (!isTRUE(show_smooth) && !isTRUE(compare_points)) {
+      stop("nothing to draw with compare_methods: set show_smooth = TRUE ",
+           "or compare_points = TRUE.", call. = FALSE)
+    }
+    if (isTRUE(show_smooth) && !isTRUE(compare_points) &&
+        is.null(x$smooth_fits)) {
+      stop("nothing to draw with compare_methods: this fit has no ",
+           "smoother (csem_gt() ran with smoother = \"none\"), so there ",
+           "are no curves to overlay. Set compare_points = TRUE to ",
+           "overlay the per-person scatter instead.", call. = FALSE)
+    }
+    .plot_csem_compare(x, series, theme_settings,
+                       compare_points = compare_points,
+                       show_smooth = show_smooth,
+                       pch = pch, cex = cex, lwd = lwd, lty = lty,
+                       alpha = alpha, main = main, sub = sub,
+                       xlab = xlab, ylab = ylab, ylim = ylim, xlim = xlim,
+                       ...)
+    return(invisible(x))
+  }
 
   # Side-by-side layout: two error types are drawn as a pair of panels
   # on a shared y-axis. add = TRUE is incompatible with opening a fresh

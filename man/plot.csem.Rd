@@ -11,6 +11,7 @@
   method = NULL,
   show_smooth = TRUE,
   compare_methods = FALSE,
+  compare_points = FALSE,
   cibands = c("person", "model"),
   asemethod = c("analytical", "bootstrap"),
   ci_level = NULL,
@@ -35,7 +36,8 @@
 \item{x}{A `csem` object.}
 
 \item{plot_type}{One of `"csem"` (the per-person scatter, the
-default), `"ci"` (confidence bands only), or `"both"`.}
+default), `"ci"` (confidence bands only), or `"both"`. Not used by
+the compare layout.}
 
 \item{error_types}{Character vector selecting the error type(s) to
 plot: `"absolute"`, `"relative"`, or both. Two error types are
@@ -50,7 +52,12 @@ Defaults to the first method carried by `x`.}
 it is available. Defaults to `TRUE`.}
 
 \item{compare_methods}{Logical; overlay the three relative-error
-estimators on one panel. Defaults to `FALSE`.}
+estimators on one panel with a legend. Defaults to `FALSE`.}
+
+\item{compare_points}{Logical; in the compare layout
+(`compare_methods = TRUE`), also draw the per-person scatter for
+each estimator. Defaults to `FALSE`, which overlays the smoother
+curves alone.}
 
 \item{cibands}{Source of the confidence bands when `plot_type` is
 `"ci"` or `"both"`: `"person"` (per-person intervals collapsed to
@@ -65,7 +72,7 @@ stored in `x`.}
 \item{theme}{Plot theme. csemGT ships a single own theme, `"csem"`.}
 
 \item{col}{Override colour for the plotted series. `NULL` uses the
-theme palette.}
+theme palette. Not applied in the compare layout.}
 
 \item{pch, cex, lwd, lty}{Graphical parameters for the scatter points
 (`pch`, `cex`) and the smoother curve (`lwd`, `lty`).}
@@ -80,10 +87,11 @@ the side-by-side layout `main` is not applied (each panel keeps its
 own title).}
 
 \item{ylim, xlim}{Axis limits. `NULL` selects a sensible default; the
-side-by-side layout always shares one `ylim` across both panels.}
+side-by-side and compare layouts share one `ylim` across series.}
 
 \item{add}{Logical; if `TRUE`, draw onto the current plot instead of
-opening a new one. Not supported with the side-by-side layout.}
+opening a new one. Not supported with the side-by-side or compare
+layouts.}
 
 \item{...}{Additional graphical parameters passed to the underlying
 `plot()` call.}
@@ -123,6 +131,14 @@ When two error types are requested (`error_types = c("absolute",
 y-axis, so the absolute and relative CSEMs are read on a common
 scale. Each panel keeps its own title; a user-supplied `main` is not
 applied in this layout, and `add = TRUE` is not supported.
+
+When `compare_methods = TRUE` the three relative-error estimators are
+overlaid on one panel with a legend, to compare their smoother curves
+directly. The per-person scatter is omitted by default -- three
+clouds would not be legible -- and added for every estimator by
+`compare_points = TRUE`. Confidence bands are not available in this
+layout, `add = TRUE` is not supported, and `col` is not applied (each
+estimator keeps its palette colour).
 }
 \examples{
 set.seed(1)
