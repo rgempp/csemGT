@@ -61,7 +61,7 @@ vertices computed by \[.plot_csem_bands()\].
 - bands:
 
   A list of ribbon vertices from \[.plot_csem_bands()\], or \`NULL\`
-  when \`plot_type = "csem"\`.
+  when no ribbon is drawn.
 
 - manage_par:
 
