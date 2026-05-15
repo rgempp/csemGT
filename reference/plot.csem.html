@@ -66,6 +66,7 @@ optional quadratic-smoother curve from the `$by_score` table.</p>
 <span>  method <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  show_smooth <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  compare_methods <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  compare_points <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  cibands <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"person"</span>, <span class="st">"model"</span><span class="op">)</span>,</span>
 <span>  asemethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"analytical"</span>, <span class="st">"bootstrap"</span><span class="op">)</span>,</span>
 <span>  ci_level <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -97,7 +98,8 @@ optional quadratic-smoother curve from the `$by_score` table.</p>
 
 <dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
 <dd><p>One of `"csem"` (the per-person scatter, the
-default), `"ci"` (confidence bands only), or `"both"`.</p></dd>
+default), `"ci"` (confidence bands only), or `"both"`. Not used by
+the compare layout.</p></dd>
 
 
 <dt id="arg-error-types">error_types<a class="anchor" aria-label="anchor" href="#arg-error-types"></a></dt>
@@ -120,7 +122,14 @@ it is available. Defaults to `TRUE`.</p></dd>
 
 <dt id="arg-compare-methods">compare_methods<a class="anchor" aria-label="anchor" href="#arg-compare-methods"></a></dt>
 <dd><p>Logical; overlay the three relative-error
-estimators on one panel. Defaults to `FALSE`.</p></dd>
+estimators on one panel with a legend. Defaults to `FALSE`.</p></dd>
+
+
+<dt id="arg-compare-points">compare_points<a class="anchor" aria-label="anchor" href="#arg-compare-points"></a></dt>
+<dd><p>Logical; in the compare layout
+(`compare_methods = TRUE`), also draw the per-person scatter for
+each estimator. Defaults to `FALSE`, which overlays the smoother
+curves alone.</p></dd>
 
 
 <dt id="arg-cibands">cibands<a class="anchor" aria-label="anchor" href="#arg-cibands"></a></dt>
@@ -145,7 +154,7 @@ stored in `x`.</p></dd>
 
 <dt id="arg-col">col<a class="anchor" aria-label="anchor" href="#arg-col"></a></dt>
 <dd><p>Override colour for the plotted series. `NULL` uses the
-theme palette.</p></dd>
+theme palette. Not applied in the compare layout.</p></dd>
 
 
 <dt id="arg-pch-cex-lwd-lty">pch, cex, lwd, lty<a class="anchor" aria-label="anchor" href="#arg-pch-cex-lwd-lty"></a></dt>
@@ -168,12 +177,13 @@ own title).</p></dd>
 
 <dt id="arg-ylim-xlim">ylim, xlim<a class="anchor" aria-label="anchor" href="#arg-ylim-xlim"></a></dt>
 <dd><p>Axis limits. `NULL` selects a sensible default; the
-side-by-side layout always shares one `ylim` across both panels.</p></dd>
+side-by-side and compare layouts share one `ylim` across series.</p></dd>
 
 
 <dt id="arg-add">add<a class="anchor" aria-label="anchor" href="#arg-add"></a></dt>
 <dd><p>Logical; if `TRUE`, draw onto the current plot instead of
-opening a new one. Not supported with the side-by-side layout.</p></dd>
+opening a new one. Not supported with the side-by-side or compare
+layouts.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -207,6 +217,13 @@ zero.</p>
 y-axis, so the absolute and relative CSEMs are read on a common
 scale. Each panel keeps its own title; a user-supplied `main` is not
 applied in this layout, and `add = TRUE` is not supported.</p>
+<p>When `compare_methods = TRUE` the three relative-error estimators are
+overlaid on one panel with a legend, to compare their smoother curves
+directly. The per-person scatter is omitted by default – three
+clouds would not be legible – and added for every estimator by
+`compare_points = TRUE`. Confidence bands are not available in this
+layout, `add = TRUE` is not supported, and `col` is not applied (each
+estimator keeps its palette colour).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

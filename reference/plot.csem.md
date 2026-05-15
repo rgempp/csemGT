@@ -18,6 +18,7 @@ plot(
   method = NULL,
   show_smooth = TRUE,
   compare_methods = FALSE,
+  compare_points = FALSE,
   cibands = c("person", "model"),
   asemethod = c("analytical", "bootstrap"),
   ci_level = NULL,
@@ -48,7 +49,8 @@ plot(
 - plot_type:
 
   One of \`"csem"\` (the per-person scatter, the default), \`"ci"\`
-  (confidence bands only), or \`"both"\`.
+  (confidence bands only), or \`"both"\`. Not used by the compare
+  layout.
 
 - error_types:
 
@@ -69,8 +71,14 @@ plot(
 
 - compare_methods:
 
-  Logical; overlay the three relative-error estimators on one panel.
-  Defaults to \`FALSE\`.
+  Logical; overlay the three relative-error estimators on one panel with
+  a legend. Defaults to \`FALSE\`.
+
+- compare_points:
+
+  Logical; in the compare layout (\`compare_methods = TRUE\`), also draw
+  the per-person scatter for each estimator. Defaults to \`FALSE\`,
+  which overlays the smoother curves alone.
 
 - cibands:
 
@@ -94,7 +102,7 @@ plot(
 - col:
 
   Override colour for the plotted series. \`NULL\` uses the theme
-  palette.
+  palette. Not applied in the compare layout.
 
 - pch, cex, lwd, lty:
 
@@ -115,13 +123,13 @@ plot(
 
 - ylim, xlim:
 
-  Axis limits. \`NULL\` selects a sensible default; the side-by-side
-  layout always shares one \`ylim\` across both panels.
+  Axis limits. \`NULL\` selects a sensible default; the side-by-side and
+  compare layouts share one \`ylim\` across series.
 
 - add:
 
   Logical; if \`TRUE\`, draw onto the current plot instead of opening a
-  new one. Not supported with the side-by-side layout.
+  new one. Not supported with the side-by-side or compare layouts.
 
 - ...:
 
@@ -157,6 +165,14 @@ When two error types are requested (\`error_types = c("absolute",
 so the absolute and relative CSEMs are read on a common scale. Each
 panel keeps its own title; a user-supplied \`main\` is not applied in
 this layout, and \`add = TRUE\` is not supported.
+
+When \`compare_methods = TRUE\` the three relative-error estimators are
+overlaid on one panel with a legend, to compare their smoother curves
+directly. The per-person scatter is omitted by default – three clouds
+would not be legible – and added for every estimator by \`compare_points
+= TRUE\`. Confidence bands are not available in this layout, \`add =
+TRUE\` is not supported, and \`col\` is not applied (each estimator
+keeps its palette colour).
 
 ## See also
 
