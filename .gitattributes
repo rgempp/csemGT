@@ -1,0 +1,34 @@
+# Default: normaliza todo lo que Git detecte como texto, checkout con LF
+* text=auto eol=lf
+
+# Código fuente del paquete
+*.R    text eol=lf
+*.Rd   text eol=lf
+*.Rmd  text eol=lf
+
+# Metadata del paquete (sin extensión)
+DESCRIPTION text eol=lf
+NAMESPACE   text eol=lf
+LICENSE     text eol=lf
+
+# Proyecto RStudio
+*.Rproj text eol=lf
+
+# Docs y config
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Snapshots de vdiffr (SVG es XML/texto; forzamos LF para evitar diffs espurios)
+*.svg text eol=lf
+
+# Binarios explícitos: evitan que Git intente normalizar line endings
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.pdf   binary
+*.rds   binary
+*.rda   binary
+*.RData binary
+*.gz    binary
+*.zip   binary
