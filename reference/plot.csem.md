@@ -53,7 +53,8 @@ plot(
 - error_types:
 
   Character vector selecting the error type(s) to plot: \`"absolute"\`,
-  \`"relative"\`, or both. Defaults to the error types carried by \`x\`.
+  \`"relative"\`, or both. Two error types are drawn as a side-by-side
+  pair of panels. Defaults to the error types carried by \`x\`.
 
 - method:
 
@@ -109,16 +110,18 @@ plot(
 
   Title, subtitle and axis labels. \`NULL\` selects a sensible default;
   for \`plot_type\` \`"ci"\` / \`"both"\` the default subtitle reports
-  the confidence level and band source.
+  the confidence level and band source. In the side-by-side layout
+  \`main\` is not applied (each panel keeps its own title).
 
 - ylim, xlim:
 
-  Axis limits. \`NULL\` selects a sensible default.
+  Axis limits. \`NULL\` selects a sensible default; the side-by-side
+  layout always shares one \`ylim\` across both panels.
 
 - add:
 
   Logical; if \`TRUE\`, draw onto the current plot instead of opening a
-  new one.
+  new one. Not supported with the side-by-side layout.
 
 - ...:
 
@@ -148,6 +151,12 @@ The confidence level is \`ci_level\` (defaulting to the level stored in
 \`x\`), so a level different from the one used at fitting time can be
 requested at plot time. The lower edge of every band is truncated at
 zero.
+
+When two error types are requested (\`error_types = c("absolute",
+"relative")\`) the two are drawn as a pair of panels sharing one y-axis,
+so the absolute and relative CSEMs are read on a common scale. Each
+panel keeps its own title; a user-supplied \`main\` is not applied in
+this layout, and \`add = TRUE\` is not supported.
 
 ## See also
 

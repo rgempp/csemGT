@@ -1,0 +1,80 @@
+# Draw the side-by-side layout for two error types
+
+Implements the two-panel layout of \[plot.csem()\]: when both error
+types are requested, the absolute and relative CSEMs are drawn as a pair
+of panels on one shared y-axis, so they are read on a common vertical
+scale. Each panel is rendered by \[.plot_csem_single()\] with
+\`manage_par = FALSE\`, the orchestrator owning the \`mfrow\` layout
+state. Each panel keeps its own series label as its title; a
+user-supplied \`main\` is not applied in this layout.
+
+## Usage
+
+``` r
+.plot_csem_sidebyside(
+  x,
+  series_list,
+  theme_settings,
+  plot_type = "csem",
+  cibands = "person",
+  asemethod = "analytical",
+  ci_level = 0.95,
+  show_smooth = TRUE,
+  col = NULL,
+  pch = 16,
+  cex = NULL,
+  lwd = 2,
+  lty = 1,
+  alpha = NULL,
+  sub = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  xlim = NULL,
+  ...
+)
+```
+
+## Arguments
+
+- x:
+
+  A \`csem\` object.
+
+- series_list:
+
+  A list of two series descriptors from \[.resolve_plot_columns()\].
+
+- theme_settings:
+
+  A list from \[.resolve_plot_theme()\].
+
+- plot_type:
+
+  One of \`"csem"\`, \`"ci"\`, \`"both"\`.
+
+- cibands, asemethod, ci_level:
+
+  Confidence-band controls, passed to \[.plot_csem_bands()\] for each
+  panel.
+
+- show_smooth:
+
+  Logical; overlay the smoother curve when available.
+
+- col, pch, cex, lwd, lty, alpha:
+
+  Graphical overrides passed through to each panel.
+
+- sub, xlab, ylab, xlim:
+
+  Annotation and axis overrides passed through to each panel. \`sub\`
+  defaults, when bands are drawn, to the same confidence-level subtitle
+  on both panels.
+
+- ...:
+
+  Passed to the underlying \`plot()\` calls.
+
+## Value
+
+The shared y-axis limits, invisibly.

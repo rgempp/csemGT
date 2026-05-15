@@ -65,6 +65,7 @@ vertices computed by [.plot_csem_bands()].</p>
 <span>  <span class="va">show_smooth</span>,</span>
 <span>  <span class="va">plot_type</span>,</span>
 <span>  <span class="va">bands</span>,</span>
+<span>  manage_par <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">col</span>,</span>
 <span>  <span class="va">pch</span>,</span>
 <span>  <span class="va">cex</span>,</span>
@@ -110,6 +111,14 @@ drawn for `"csem"` and `"both"`; the ribbon for `"ci"` and `"both"`.</p></dd>
 <dt id="arg-bands">bands<a class="anchor" aria-label="anchor" href="#arg-bands"></a></dt>
 <dd><p>A list of ribbon vertices from [.plot_csem_bands()], or
 `NULL` when `plot_type = "csem"`.</p></dd>
+
+
+<dt id="arg-manage-par">manage_par<a class="anchor" aria-label="anchor" href="#arg-manage-par"></a></dt>
+<dd><p>Logical; if `TRUE` (the default) the helper saves,
+sets and restores the graphical parameters (`mar`, `mgp`, `tcl`,
+`las`) itself. The side-by-side orchestrator passes `FALSE` so it
+can own the layout state (`mfrow`) without the per-panel
+save/restore resetting it.</p></dd>
 
 
 <dt id="arg-col-pch-cex-lwd-lty-alpha">col, pch, cex, lwd, lty, alpha<a class="anchor" aria-label="anchor" href="#arg-col-pch-cex-lwd-lty-alpha"></a></dt>
