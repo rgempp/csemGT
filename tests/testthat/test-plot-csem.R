@@ -1,15 +1,17 @@
 # Tests for plot.csem and the plotting helpers in R/plot-csem.R:
 # csem_palette(), .resolve_plot_theme(), .resolve_plot_columns(),
-# .plot_csem_bands(), .plot_csem_single(), and the plot.csem dispatcher.
+# .plot_csem_bands(), .plot_csem_single(), .plot_csem_sidebyside(),
+# and the plot.csem dispatcher.
 #
 # Sub-phase 3.5 covers the single-panel plot_type = "csem" layout;
 # sub-phase 3.6 adds the confidence-band layers (plot_type "ci" / "both",
-# cibands "person" / "model"). The visual-parity checks (vdiffr against
-# the four paper figures) belong to a later sub-phase; here the plotting
+# cibands "person" / "model"); sub-phase 3.7a adds the side-by-side
+# layout for two error types. The visual-parity checks (vdiffr against
+# the four paper figures) belong to sub-phase 3.7c; here the plotting
 # paths are exercised as smoke tests -- they must run, return invisibly,
 # and stop cleanly on the branches that are not yet wired -- while the
-# pure helpers (palette, theme, column and band resolvers) are
-# unit-tested directly.
+# pure helpers (palette, theme, column and band resolvers, the
+# side-by-side y-axis sharing) are unit-tested directly.
 
 .make_plot_data <- function(seed = 11L, N = 120L, J = 16L) {
   set.seed(seed)
@@ -118,6 +120,15 @@ test_that(".resolve_plot_columns() expands compare_methods to three series", {
   expect_identical(vapply(series, `[[`, character(1), "key"),
                    c("relative_full", "relative_large_a",
                      "relative_uncorrelated"))
+})
+
+test_that(".resolve_plot_columns() resolves two error types to two series", {
+  fit <- fit_both()
+  series <- .resolve_plot_columns(fit, c("absolute", "relative"),
+                                  "full", FALSE)
+  expect_length(series, 2L)
+  expect_identical(vapply(series, `[[`, character(1), "key"),
+                   c("absolute", "relative_full"))
 })
 
 test_that(".resolve_plot_columns() errors when the column is absent", {
@@ -319,6 +330,48 @@ test_that("plot.csem errors on asemethod = 'bootstrap' without a bootstrap", {
 
 
 # -----------------------------------------------------------------------------
+# plot.csem -- side-by-side layout (two error types)
+# -----------------------------------------------------------------------------
+
+test_that("plot.csem draws the side-by-side layout without error", {
+  fit <- fit_both()
+  expect_no_error(with_null_device(plot(fit)))
+  expect_no_error(with_null_device(plot(fit, plot_type = "ci")))
+  expect_no_error(with_null_device(plot(fit, plot_type = "both")))
+})
+
+test_that("plot.csem side-by-side returns the object invisibly", {
+  fit <- fit_both()
+  result <- with_null_device(expect_invisible(plot(fit)))
+  expect_identical(result, fit)
+})
+
+test_that("plot.csem side-by-side shares the y axis across panels", {
+  fit         <- fit_both()
+  series_list <- .resolve_plot_columns(fit, c("absolute", "relative"),
+                                       "full", FALSE)
+  th          <- .resolve_plot_theme("csem")
+  yl <- with_null_device(
+    .plot_csem_sidebyside(fit, series_list, th, plot_type = "csem"))
+  # The shared range starts at 0 and covers both panels' scatter clouds.
+  expect_equal(yl[[1L]], 0)
+  expect_gte(yl[[2L]], max(fit$estimates$csem.absolute))
+  expect_gte(yl[[2L]], max(fit$estimates$csem.relative_full))
+})
+
+test_that("plot.csem side-by-side rejects add = TRUE", {
+  fit <- fit_both()
+  expect_error(with_null_device(plot(fit, add = TRUE)), "side-by-side")
+})
+
+test_that("plot.csem side-by-side draws model bands without error", {
+  fit <- fit_both()
+  expect_no_error(with_null_device(
+    plot(fit, plot_type = "both", cibands = "model")))
+})
+
+
+# -----------------------------------------------------------------------------
 # plot.csem -- deferred-branch guards
 # -----------------------------------------------------------------------------
 
@@ -326,11 +379,6 @@ test_that("plot.csem stops on compare_methods (deferred branch)", {
   fit <- fit_rel()
   expect_error(with_null_device(plot(fit, compare_methods = TRUE)),
                "compare_methods")
-})
-
-test_that("plot.csem stops on the two-error-type side-by-side layout", {
-  fit <- fit_both()
-  expect_error(with_null_device(plot(fit)), "side-by-side")
 })
 
 test_that("plot.csem errors when asked for an estimator the fit lacks", {

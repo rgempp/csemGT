@@ -11,6 +11,7 @@
   show_smooth,
   plot_type,
   bands,
+  manage_par = TRUE,
   col,
   pch,
   cex,
@@ -41,6 +42,12 @@ drawn for `"csem"` and `"both"`; the ribbon for `"ci"` and `"both"`.}
 
 \item{bands}{A list of ribbon vertices from [.plot_csem_bands()], or
 `NULL` when `plot_type = "csem"`.}
+
+\item{manage_par}{Logical; if `TRUE` (the default) the helper saves,
+sets and restores the graphical parameters (`mar`, `mgp`, `tcl`,
+`las`) itself. The side-by-side orchestrator passes `FALSE` so it
+can own the layout state (`mfrow`) without the per-panel
+save/restore resetting it.}
 
 \item{col, pch, cex, lwd, lty, alpha}{Graphical overrides; `NULL` means
 "use the theme or calibrated default".}

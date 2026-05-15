@@ -4,18 +4,20 @@
 # against the observed score, in base graphics, aiming at visual parity
 # with the gtcsem_plot Stata command (mini-spec v1.1 section 6.3).
 #
-# This file covers sub-phases 3.5 and 3.6:
-#   3.5 - the plot.csem dispatcher, the package palette (csem_palette(),
-#         exported) and its theme resolver, the column/series resolver,
-#         and the single-panel layout .plot_csem_single() for
-#         plot_type = "csem".
-#   3.6 - the confidence-band layers for plot_type = "ci" / "both":
-#         .plot_csem_bands() (delta-method bands, sources "person" and
-#         "model"), consumed by .plot_csem_single() as a ribbon drawn
-#         behind the data.
-# The side-by-side (two error types) and compare layouts are added by
-# sub-phase 3.7; until then the dispatcher stops with an explicit message
-# on those branches.
+# This file covers sub-phases 3.5, 3.6 and 3.7a:
+#   3.5  - the plot.csem dispatcher, the package palette (csem_palette(),
+#          exported) and its theme resolver, the column/series resolver,
+#          and the single-panel layout .plot_csem_single() for
+#          plot_type = "csem".
+#   3.6  - the confidence-band layers for plot_type = "ci" / "both":
+#          .plot_csem_bands() (delta-method bands, sources "person" and
+#          "model"), consumed by .plot_csem_single() as a ribbon drawn
+#          behind the data.
+#   3.7a - the side-by-side layout for two error types:
+#          .plot_csem_sidebyside() draws the absolute and relative
+#          panels on one shared y-axis.
+# The compare layout (compare_methods = TRUE) is added by sub-phase
+# 3.7b; until then that branch stops with an explicit message.
 #
 # The per-person scatter is drawn from $estimates -- one point per person
 # -- on purpose: persons with the same observed score can carry different
@@ -316,6 +318,11 @@ csem_palette <- function(which = NULL) {
 #'   drawn for `"csem"` and `"both"`; the ribbon for `"ci"` and `"both"`.
 #' @param bands A list of ribbon vertices from [.plot_csem_bands()], or
 #'   `NULL` when `plot_type = "csem"`.
+#' @param manage_par Logical; if `TRUE` (the default) the helper saves,
+#'   sets and restores the graphical parameters (`mar`, `mgp`, `tcl`,
+#'   `las`) itself. The side-by-side orchestrator passes `FALSE` so it
+#'   can own the layout state (`mfrow`) without the per-panel
+#'   save/restore resetting it.
 #' @param col,pch,cex,lwd,lty,alpha Graphical overrides; `NULL` means
 #'   "use the theme or calibrated default".
 #' @param main,sub,xlab,ylab,ylim,xlim Annotation and axis overrides;
@@ -328,7 +335,7 @@ csem_palette <- function(which = NULL) {
 #'
 #' @keywords internal
 .plot_csem_single <- function(x, series, theme_settings, show_smooth,
-                              plot_type, bands,
+                              plot_type, bands, manage_par = TRUE,
                               col, pch, cex, lwd, lty, alpha,
                               main, sub, xlab, ylab, ylim, xlim, add, ...) {
 
@@ -387,10 +394,12 @@ csem_palette <- function(which = NULL) {
                if (!is.null(bands)) bands$x)
     if (is.null(xlim)) xlim <- range(x_all, na.rm = TRUE)
 
-    op <- graphics::par(no.readonly = TRUE)
-    on.exit(graphics::par(op))
-    graphics::par(mar = c(5, 5, 4, 2), mgp = c(2.7, 0.7, 0),
-                  tcl = -0.3, las = 1)
+    if (isTRUE(manage_par)) {
+      op <- graphics::par(no.readonly = TRUE)
+      on.exit(graphics::par(op))
+      graphics::par(mar = c(5, 5, 4, 2), mgp = c(2.7, 0.7, 0),
+                    tcl = -0.3, las = 1)
+    }
 
     plot(NULL, xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab,
          main = main, sub = sub, bty = "l", ...)
@@ -423,6 +432,115 @@ csem_palette <- function(which = NULL) {
 }
 
 
+#' Draw the side-by-side layout for two error types
+#'
+#' Implements the two-panel layout of [plot.csem()]: when both error
+#' types are requested, the absolute and relative CSEMs are drawn as a
+#' pair of panels on one shared y-axis, so they are read on a common
+#' vertical scale. Each panel is rendered by [.plot_csem_single()] with
+#' `manage_par = FALSE`, the orchestrator owning the `mfrow` layout
+#' state. Each panel keeps its own series label as its title; a
+#' user-supplied `main` is not applied in this layout.
+#'
+#' @param x A `csem` object.
+#' @param series_list A list of two series descriptors from
+#'   [.resolve_plot_columns()].
+#' @param theme_settings A list from [.resolve_plot_theme()].
+#' @param plot_type One of `"csem"`, `"ci"`, `"both"`.
+#' @param cibands,asemethod,ci_level Confidence-band controls, passed to
+#'   [.plot_csem_bands()] for each panel.
+#' @param show_smooth Logical; overlay the smoother curve when available.
+#' @param col,pch,cex,lwd,lty,alpha Graphical overrides passed through to
+#'   each panel.
+#' @param sub,xlab,ylab,xlim Annotation and axis overrides passed through
+#'   to each panel. `sub` defaults, when bands are drawn, to the same
+#'   confidence-level subtitle on both panels.
+#' @param ... Passed to the underlying `plot()` calls.
+#'
+#' @return The shared y-axis limits, invisibly.
+#'
+#' @keywords internal
+.plot_csem_sidebyside <- function(x, series_list, theme_settings,
+                                  plot_type   = "csem",
+                                  cibands     = "person",
+                                  asemethod   = "analytical",
+                                  ci_level    = 0.95,
+                                  show_smooth = TRUE,
+                                  col = NULL, pch = 16, cex = NULL,
+                                  lwd = 2, lty = 1, alpha = NULL,
+                                  sub = NULL, xlab = NULL, ylab = NULL,
+                                  xlim = NULL, ...) {
+
+  draw_bands <- plot_type %in% c("ci", "both")
+
+  # Confidence-band vertices for each panel.
+  bands_list <- lapply(series_list, function(s) {
+    if (draw_bands) {
+      .plot_csem_bands(x, s, cibands, asemethod, ci_level)
+    } else {
+      NULL
+    }
+  })
+
+  # Shared y-axis. The two panels are read on one vertical scale, so the
+  # range is the union of what each panel would need: the per-person
+  # scatter (when drawn), the smoother curve, and the band upper edge.
+  # The scatter maximum is taken over all persons -- the keep filter
+  # only drops floor/ceiling cases, whose CSEMs sit at the low end and
+  # never set the maximum -- so the keep logic need not be replicated.
+  panel_ymax <- function(s, b) {
+    vals <- numeric(0)
+    if (plot_type %in% c("csem", "both")) {
+      vals <- c(vals, x$estimates[[s$csem_col]])
+    }
+    if (isTRUE(show_smooth) && s$smooth_col %in% names(x$by_score)) {
+      vals <- c(vals, x$by_score[[s$smooth_col]])
+    }
+    if (!is.null(b)) vals <- c(vals, b$hi)
+    max(vals, na.rm = TRUE)
+  }
+  shared_ymax <- max(vapply(
+    seq_along(series_list),
+    function(i) panel_ymax(series_list[[i]], bands_list[[i]]),
+    numeric(1)
+  ))
+  shared_ylim <- c(0, shared_ymax * 1.05)
+
+  # Default per-panel subtitle when bands are drawn (same text on both).
+  if (is.null(sub) && draw_bands) {
+    pct <- formatC(ci_level * 100, format = "g")
+    sub <- if (identical(cibands, "model")) {
+      paste0(pct, "% CI bands around quadratic fit")
+    } else {
+      paste0(pct, "% CI bands using ", asemethod, " SE")
+    }
+  }
+
+  # One row of two panels. .plot_csem_single() is called with
+  # manage_par = FALSE so it does not run its own par() save/restore,
+  # which would reset the mfrow/mfg state between panels.
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
+  graphics::par(mfrow = c(1L, 2L), mar = c(5, 5, 4, 2),
+                mgp = c(2.7, 0.7, 0), tcl = -0.3, las = 1)
+
+  for (i in seq_along(series_list)) {
+    .plot_csem_single(x, series_list[[i]], theme_settings,
+                      show_smooth = show_smooth,
+                      plot_type = plot_type, bands = bands_list[[i]],
+                      manage_par = FALSE,
+                      col = col, pch = pch, cex = cex,
+                      lwd = lwd, lty = lty, alpha = alpha,
+                      main = NULL, sub = sub,
+                      xlab = xlab, ylab = ylab,
+                      ylim = shared_ylim, xlim = xlim,
+                      add = FALSE, ...)
+  }
+
+  invisible(shared_ylim)
+}
+
+
 #' Plot a `csem` object
 #'
 #' Draws a Brennan-style plot of the per-person conditional standard
@@ -451,12 +569,19 @@ csem_palette <- function(which = NULL) {
 #' requested at plot time. The lower edge of every band is truncated at
 #' zero.
 #'
+#' When two error types are requested (`error_types = c("absolute",
+#' "relative")`) the two are drawn as a pair of panels sharing one
+#' y-axis, so the absolute and relative CSEMs are read on a common
+#' scale. Each panel keeps its own title; a user-supplied `main` is not
+#' applied in this layout, and `add = TRUE` is not supported.
+#'
 #' @param x A `csem` object.
 #' @param plot_type One of `"csem"` (the per-person scatter, the
 #'   default), `"ci"` (confidence bands only), or `"both"`.
 #' @param error_types Character vector selecting the error type(s) to
-#'   plot: `"absolute"`, `"relative"`, or both. Defaults to the error
-#'   types carried by `x`.
+#'   plot: `"absolute"`, `"relative"`, or both. Two error types are
+#'   drawn as a side-by-side pair of panels. Defaults to the error types
+#'   carried by `x`.
 #' @param method Relative-error estimator to plot when `error_types`
 #'   includes `"relative"`: `"full"`, `"large_a"`, or `"uncorrelated"`.
 #'   Defaults to the first method carried by `x`.
@@ -480,10 +605,13 @@ csem_palette <- function(which = NULL) {
 #'   the number of plotted persons.
 #' @param main,sub,xlab,ylab Title, subtitle and axis labels. `NULL`
 #'   selects a sensible default; for `plot_type` `"ci"` / `"both"` the
-#'   default subtitle reports the confidence level and band source.
-#' @param ylim,xlim Axis limits. `NULL` selects a sensible default.
+#'   default subtitle reports the confidence level and band source. In
+#'   the side-by-side layout `main` is not applied (each panel keeps its
+#'   own title).
+#' @param ylim,xlim Axis limits. `NULL` selects a sensible default; the
+#'   side-by-side layout always shares one `ylim` across both panels.
 #' @param add Logical; if `TRUE`, draw onto the current plot instead of
-#'   opening a new one.
+#'   opening a new one. Not supported with the side-by-side layout.
 #' @param ... Additional graphical parameters passed to the underlying
 #'   `plot()` call.
 #'
@@ -538,24 +666,37 @@ plot.csem <- function(x,
 
   theme_settings <- .resolve_plot_theme(theme)
 
-  # Deferred-branch guards. The side-by-side (two error types) and
-  # compare layouts are added by sub-phase 3.7 of Sprint 3; until then
-  # those branches stop with an explicit message rather than silently
-  # doing something else.
+  # Deferred-branch guard: the compare layout is added by sub-phase 3.7b
+  # of Sprint 3; until then that branch stops with an explicit message.
   if (isTRUE(compare_methods)) {
     stop("compare_methods is not yet available in plot.csem; ",
          "plot a single estimator with error_types and method.",
          call. = FALSE)
   }
-  if (length(error_types) == 2L) {
-    stop("the side-by-side layout (two error types) is not yet available ",
-         "in plot.csem; pass error_types = \"absolute\" or \"relative\".",
-         call. = FALSE)
-  }
 
   series <- .resolve_plot_columns(x, error_types, method, compare_methods)
 
-  # Confidence-band layer. .plot_csem_bands() returns the ribbon vertices
+  # Side-by-side layout: two error types are drawn as a pair of panels
+  # on a shared y-axis. add = TRUE is incompatible with opening a fresh
+  # two-panel layout, so it is rejected here.
+  if (length(series) == 2L) {
+    if (isTRUE(add)) {
+      stop("add = TRUE is not supported with the side-by-side layout ",
+           "(two error types); plot a single error type to use add.",
+           call. = FALSE)
+    }
+    .plot_csem_sidebyside(x, series, theme_settings,
+                          plot_type = plot_type, cibands = cibands,
+                          asemethod = asemethod, ci_level = ci_level,
+                          show_smooth = show_smooth,
+                          col = col, pch = pch, cex = cex,
+                          lwd = lwd, lty = lty, alpha = alpha,
+                          sub = sub, xlab = xlab, ylab = ylab,
+                          xlim = xlim, ...)
+    return(invisible(x))
+  }
+
+  # Single-panel layout. .plot_csem_bands() returns the ribbon vertices
   # for plot_type "ci" / "both"; for "csem" no band is computed and the
   # scatter is drawn alone. When the user did not set an explicit
   # subtitle, a default one reporting the level and band source is used.
