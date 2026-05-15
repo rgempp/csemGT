@@ -394,11 +394,15 @@ csem_palette <- function(which = NULL) {
                if (!is.null(bands)) bands$x)
     if (is.null(xlim)) xlim <- range(x_all, na.rm = TRUE)
 
-    if (isTRUE(manage_par)) {
-      op <- graphics::par(no.readonly = TRUE)
+if (isTRUE(manage_par)) {
+      # Capture and restore only the parameters we change. Using
+      # par(no.readonly = TRUE) here would also capture `usr` (the user
+      # coordinate system), and the on.exit restore would clobber it on
+      # return -- breaking subsequent points(..., add = TRUE) calls that
+      # depend on this plot's coordinate system.
+      op <- graphics::par(mar = c(5, 5, 4, 2), mgp = c(2.7, 0.7, 0),
+                          tcl = -0.3, las = 1)
       on.exit(graphics::par(op))
-      graphics::par(mar = c(5, 5, 4, 2), mgp = c(2.7, 0.7, 0),
-                    tcl = -0.3, las = 1)
     }
 
     plot(NULL, xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab,
@@ -519,10 +523,11 @@ csem_palette <- function(which = NULL) {
   # One row of two panels. .plot_csem_single() is called with
   # manage_par = FALSE so it does not run its own par() save/restore,
   # which would reset the mfrow/mfg state between panels.
-  op <- graphics::par(no.readonly = TRUE)
+# Capture and restore only the parameters we change; see the comment
+  # in .plot_csem_single() about preserving `usr`.
+  op <- graphics::par(mfrow = c(1L, 2L), mar = c(5, 5, 4, 2),
+                      mgp = c(2.7, 0.7, 0), tcl = -0.3, las = 1)
   on.exit(graphics::par(op))
-  graphics::par(mfrow = c(1L, 2L), mar = c(5, 5, 4, 2),
-                mgp = c(2.7, 0.7, 0), tcl = -0.3, las = 1)
 
   for (i in seq_along(series_list)) {
     .plot_csem_single(x, series_list[[i]], theme_settings,
@@ -609,13 +614,24 @@ csem_palette <- function(which = NULL) {
   # label; use it as the default title.
   main <- main %||% series_list[[1L]]$label
 
+# Own the par state for the whole panel. .plot_csem_single() is
+  # called with manage_par = FALSE so the three series do not toggle
+  # par(mar = ...) between draws; per-call on.exit restores between
+  # series invalidated the device display list and made the resulting
+  # SVG non-deterministic across runs (vdiffr alternating failures
+  # with "display list redraw incomplete" / "invalid graphics state"
+  # warnings).
+  op <- graphics::par(mar = c(5, 5, 4, 2), mgp = c(2.7, 0.7, 0),
+                      tcl = -0.3, las = 1)
+  on.exit(graphics::par(op))
+
   # The first series opens the panel; the rest are overlaid with
   # add = TRUE. Each series is drawn in its own palette colour.
   for (i in seq_along(series_list)) {
     .plot_csem_single(x, series_list[[i]], theme_settings,
                       show_smooth = show_smooth,
                       plot_type = inner_plot_type, bands = NULL,
-                      manage_par = TRUE,
+                      manage_par = FALSE,
                       col = series_list[[i]]$color,
                       pch = pch, cex = cex, lwd = lwd, lty = lty,
                       alpha = alpha,
@@ -623,7 +639,7 @@ csem_palette <- function(which = NULL) {
                       ylim = ylim, xlim = xlim,
                       add = (i > 1L), ...)
   }
-
+  
   # Legend: one entry per estimator, in its palette colour. The point
   # marker is shown in the key only when the scatter is drawn.
   graphics::legend(

@@ -181,6 +181,26 @@ test_that("plot.csem runs with add = TRUE onto an existing plot", {
   }))
 })
 
+test_that("plot.csem preserves the user coordinate system after returning", {
+  # Regression test for a Sprint-3.5-era bug: .plot_csem_single() used
+  # par(no.readonly = TRUE) to save par state and restored it on exit,
+  # which also restored `usr` and clobbered the plot's coordinate
+  # system. Subsequent points(add = TRUE) calls then drew through
+  # whatever `usr` had been before the first plot opened (typically the
+  # device default c(0, 1, 0, 1)), landing the points anywhere on the
+  # device. Here we check that par("usr") after plot.csem reflects the
+  # plot's actual ylim, not the device default.
+  fit <- fit_rel()
+  with_null_device({
+    plot(fit, error_types = "relative", method = "full")
+    usr_y_max <- graphics::par("usr")[4L]
+  })
+  csem_max <- max(fit$estimates$csem.relative_full, na.rm = TRUE)
+  # The plot's ylim is c(0, csem_max * 1.05) plus a ~4% bty margin; the
+  # device default ylim would be 1, far above csem_max * 2.
+  expect_lt(usr_y_max, csem_max * 2)
+})
+
 test_that("plot.csem honours an explicit colour and alpha", {
   fit <- fit_abs()
   expect_no_error(
@@ -453,6 +473,23 @@ test_that("plot.csem compare errors when an estimator is missing from the fit", 
   expect_error(
     with_null_device(plot(fit, compare_methods = TRUE)),
     "csem\\.relative_large_a")
+  })
+  
+test_that("plot.csem compare layout emits no graphics-state warnings", {
+  # Regression test: an earlier implementation passed manage_par = TRUE
+  # to each .plot_csem_single() call inside .plot_csem_compare(), so
+  # the first call's on.exit toggled par(mar = ...) between draws. That
+  # invalidated the device display list and emitted
+  # "display list redraw incomplete" / "invalid graphics state"
+  # warnings, with non-deterministic SVG output that broke vdiffr
+  # across runs.
+  fit <- fit_rel()
+  with_null_device({
+    expect_no_warning(
+      plot(fit, compare_methods = TRUE, compare_points = TRUE,
+           show_smooth = FALSE))
+  })
+  
 })
 
 
