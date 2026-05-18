@@ -23,6 +23,24 @@
                            relative_uncorrelated = "rel_ev_unc")
 
 
+# Header label for the "Method" line shared by print.csem() and
+# print.summary.csem(). `method` governs only the relative-error
+# estimators, so when the fit carries no relative error type that
+# argument is irrelevant and reporting "all" (or a method list) there is
+# misleading -- the label is "n/a (absolute error only)" instead.
+# Otherwise: "all" when every relative method is present, else the
+# comma-separated list of methods.
+.csem_methods_label <- function(methods, error_types) {
+  if (!("relative" %in% error_types)) {
+    return("n/a (absolute error only)")
+  }
+  if (setequal(methods, c("full", "large_a", "uncorrelated"))) {
+    return("all")
+  }
+  paste(methods, collapse = ", ")
+}
+
+
 #' Print a `csem` object
 #'
 #' Displays a `csem` object as a sequence of console blocks mirroring the
@@ -71,12 +89,7 @@ print.csem <- function(x, ...) {
     cat(sprintf("D-study items   :  %d\n", n_items_D))
   }
 
-  methods_str <- if (setequal(x$methods,
-                              c("full", "large_a", "uncorrelated"))) {
-    "all"
-  } else {
-    paste(x$methods, collapse = ", ")
-  }
+  methods_str <- .csem_methods_label(x$methods, x$error_types)
   cat(sprintf("Method          :  %s\n", methods_str))
 
   se_method <- if (isTRUE(args$bootstrap) && isTRUE(args$return_analytical)) {

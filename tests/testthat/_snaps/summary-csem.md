@@ -44,7 +44,7 @@
       Summary of Conditional SEMs in Generalizability Theory
       ----------------------------------------------------------------
       Paradigm     :  gt
-      Methods      :  all
+      Methods      :  n/a (absolute error only)
       Error types  :  absolute
       Persons      :  100
       Items        :  15

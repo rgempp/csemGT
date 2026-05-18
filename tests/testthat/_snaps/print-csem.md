@@ -59,7 +59,7 @@
       Persons (n_p)   :  90
       G-study items   :  16
       D-study items   :  16
-      Method          :  all
+      Method          :  n/a (absolute error only)
       SE method       :  analytical
       ANOVA table
       ----------------------------------------------------------------

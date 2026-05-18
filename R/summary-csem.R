@@ -133,12 +133,7 @@ print.summary.csem <- function(x, ...) {
   cat("Summary of Conditional SEMs in Generalizability Theory\n")
   rule()
 
-  methods_str <- if (setequal(x$methods,
-                              c("full", "large_a", "uncorrelated"))) {
-    "all"
-  } else {
-    paste(x$methods, collapse = ", ")
-  }
+methods_str <- .csem_methods_label(x$methods, x$error_types)
   cat(sprintf("Paradigm     :  %s\n", x$paradigm))
   cat(sprintf("Methods      :  %s\n", methods_str))
   cat(sprintf("Error types  :  %s\n", paste(x$error_types, collapse = ", ")))
