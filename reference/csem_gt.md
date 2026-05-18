@@ -196,6 +196,16 @@ are not derived in Brennan (1998), which focuses on the point
 estimators. Users requiring fully verified inferential coverage should
 prefer the bootstrap standard errors (\`bootstrap = TRUE\`).
 
+The \`relative_uncorrelated\` estimator is the per-person absolute error
+variance minus \`sigma^2(i)/I\`. When \`sigma^2(Delta_p) \<
+sigma^2(i)/I\` the estimated relative error variance is negative and,
+under the default \`truncate_negative_error_var = FALSE\`, \*\*its
+conditional SEM is \`NaN\` at that score rather than truncated to
+zero\*\*. This is expected behaviour, not a defect: it marks scores at
+which the estimator admits no non-negative variance, typically the
+extreme scores. Set \`truncate_negative_error_var = TRUE\` to clip such
+variances to zero (the CSEM is then zero at those scores).
+
 ## References
 
 Brennan, R. L. (1998). Raw-score conditional standard errors of
