@@ -383,11 +383,8 @@ csem_gt <- function(data,
     item                     = vc$sigma2_i,
     residual                 = vc$sigma2_pi,
     population_quantities    = pop_q,
-    reliability_coefficients = c(
-      rel_coef,
-      list(smoothing_diagnostics = smoothing_diagnostics)))
-
-  bootstrap_meta <- if (bootstrap) {
+    reliability_coefficients = rel_coef)
+    bootstrap_meta <- if (bootstrap) {
     list(
       type       = boot_results$type,
       R          = boot_results$R,
@@ -407,11 +404,11 @@ csem_gt <- function(data,
     arguments           = arguments,
     variance_components = variance_components,
     smooth_fits         = smooth_fits,
+    diagnostics         = smoothing_diagnostics,
     bootstrap           = bootstrap_meta,
     scale_transform     = NULL,
     n_persons           = N,
     n_items             = J)
-
   # ---------------------------------------------------------------------
   # Step 13 — validate and return
   # ---------------------------------------------------------------------

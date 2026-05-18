@@ -14,6 +14,7 @@ new_csem(
   arguments,
   variance_components = NULL,
   smooth_fits = NULL,
+  diagnostics = NULL,
   bootstrap = NULL,
   scale_transform = NULL,
   n_persons,
@@ -46,6 +47,9 @@ components (used by the GT paradigm). May be `NULL`.}
 
 \item{smooth_fits}{Named list of smoother diagnostics (one element
 per smoothed column). May be `NULL`.}
+
+\item{diagnostics}{Named list of smoother sample-size diagnostics
+(`n_floor`, `n_ceiling`, `n_fit`). May be `NULL`.}
 
 \item{bootstrap}{Named list with bootstrap metadata and replicates,
 or `NULL` when bootstrap is not performed.}

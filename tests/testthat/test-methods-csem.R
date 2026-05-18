@@ -90,10 +90,13 @@ test_that("coef.csem() carries the expected top-level structure", {
                     "reliability_coefficients") %in% names(cf)))
 })
 
-test_that("coef.csem() reliability_coefficients includes smoothing_diagnostics", {
-  # Cross-check with the 3.1 contract: the smoothing diagnostics node is
-  # part of variance_components and therefore reachable through coef().
+test_that("coef.csem() no longer carries smoothing_diagnostics (moved to $diagnostics)", {
+  # Sprint 4.5 contract change: the smoother sample diagnostics were
+  # moved out of variance_components$reliability_coefficients to the
+  # top-level $diagnostics node; coef() therefore no longer exposes
+  # them, and they are reachable directly on the object instead.
   fit <- fit_acc()
-  expect_true("smoothing_diagnostics" %in%
-                names(coef(fit)$reliability_coefficients))
+  expect_false("smoothing_diagnostics" %in%
+                 names(coef(fit)$reliability_coefficients))
+  expect_named(fit$diagnostics, c("n_floor", "n_ceiling", "n_fit"))
 })

@@ -23,6 +23,8 @@
 #'   components (used by the GT paradigm). May be `NULL`.
 #' @param smooth_fits Named list of smoother diagnostics (one element
 #'   per smoothed column). May be `NULL`.
+#' @param diagnostics Named list of smoother sample-size diagnostics
+#'   (`n_floor`, `n_ceiling`, `n_fit`). May be `NULL`.
 #' @param bootstrap Named list with bootstrap metadata and replicates,
 #'   or `NULL` when bootstrap is not performed.
 #' @param scale_transform Scale transformation specification, or `NULL`.
@@ -41,6 +43,7 @@ new_csem <- function(estimates,
                      arguments,
                      variance_components = NULL,
                      smooth_fits         = NULL,
+                     diagnostics         = NULL,
                      bootstrap           = NULL,
                      scale_transform     = NULL,
                      n_persons,
@@ -69,6 +72,7 @@ new_csem <- function(estimates,
     arguments           = arguments,
     variance_components = variance_components,
     smooth_fits         = smooth_fits,
+    diagnostics         = diagnostics,
     bootstrap           = bootstrap,
     scale_transform     = scale_transform,
     n_persons           = as.integer(n_persons),

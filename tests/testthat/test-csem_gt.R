@@ -223,8 +223,8 @@ test_that("csem_gt() variance_components has the expected structure", {
 expect_named(vc$population_quantities,
                c("absolute_error_var", "absolute_sem",
                  "relative_error_var", "relative_sem"))
-  expect_named(vc$reliability_coefficients,
-               c("erho2", "phi", "phi_lambda", "smoothing_diagnostics"))
+expect_named(vc$reliability_coefficients,
+               c("erho2", "phi", "phi_lambda"))
 })
 
 test_that("csem_gt() phi_lambda is NA without a cutpoint and finite with one", {
@@ -291,7 +291,7 @@ test_that("csem_gt() exclude_extremes populates smoothing_diagnostics", {
   fit <- suppressMessages(
     csem_gt(.make_gt_data_degenerate(), error_type = "absolute",
             exclude_extremes = TRUE))
-  sd <- fit$variance_components$reliability_coefficients$smoothing_diagnostics
+  sd <- fit$diagnostics
   expect_named(sd, c("n_floor", "n_ceiling", "n_fit"))
   expect_true(sd$n_floor   >= 1L)
   expect_true(sd$n_ceiling >= 1L)
@@ -302,14 +302,14 @@ test_that("csem_gt() exclude_extremes populates smoothing_diagnostics", {
 
 test_that("csem_gt() smoothing_diagnostics are NA without exclude_extremes", {
   fit <- fit_default()
-  sd  <- fit$variance_components$reliability_coefficients$smoothing_diagnostics
+  sd  <- fit$diagnostics
   expect_named(sd, c("n_floor", "n_ceiling", "n_fit"))
   expect_true(all(is.na(unlist(sd))))
 })
 
 test_that("csem_gt() smoothing_diagnostics present and NA when smoother = 'none'", {
   fit <- suppressMessages(csem_gt(.make_gt_data(), smoother = "none"))
-  sd  <- fit$variance_components$reliability_coefficients$smoothing_diagnostics
+  sd  <- fit$diagnostics
   expect_named(sd, c("n_floor", "n_ceiling", "n_fit"))
   expect_true(all(is.na(unlist(sd))))
 })

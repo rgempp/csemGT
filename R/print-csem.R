@@ -110,7 +110,7 @@ print.csem <- function(x, ...) {
     }
     cat(sprintf("Smoothing       :  %s\n", sm_desc))
     if (isTRUE(args$exclude_extremes)) {
-      sd <- vc$reliability_coefficients$smoothing_diagnostics
+      sd <- x$diagnostics
       cat(sprintf(
         "Smoothing fit   :  n_fit = %d (excluded %d floor + %d ceiling case(s))\n",
         sd$n_fit, sd$n_floor, sd$n_ceiling))
