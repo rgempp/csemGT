@@ -10,7 +10,6 @@
   theme_settings,
   compare_points = FALSE,
   show_smooth = TRUE,
-  pch = 16,
   cex = NULL,
   lwd = 2,
   lty = 1,
@@ -37,8 +36,10 @@ each estimator.}
 
 \item{show_smooth}{Logical; draw the smoother curves.}
 
-\item{pch, cex, lwd, lty, alpha}{Graphical overrides passed through to
-each series.}
+\item{cex, lwd, lty, alpha}{Graphical overrides passed through to each
+series. `pch` is not an override here: each estimator uses a fixed
+symbol from the package symbol map (open circle / diamond /
+triangle), parallel to its palette colour.}
 
 \item{main, sub, xlab, ylab, ylim, xlim}{Annotation and axis overrides.
 `main` defaults to the shared `"Relative conditional SEM"` label;

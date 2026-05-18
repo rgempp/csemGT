@@ -39,6 +39,18 @@
   structural            = "#BBBBBB"
 )
 
+# Plotting symbol per estimator, parallel to .csem_palette_values. Used
+# by the compare layout so the overlaid estimators are distinguishable
+# by shape even where they coincide in position (relative_full and
+# relative_large_a converge as the number of items grows). Open symbols
+# keep overlapping series legible. The single-panel and side-by-side
+# layouts take pch from the plot() argument, not from this map.
+.csem_pch_values <- c(
+  absolute              = 16,  # solid circle
+  relative_full         = 1,   # open circle
+  relative_large_a      = 5,   # open diamond
+  relative_uncorrelated = 2    # open triangle
+)
 
 #' The csemGT colour palette
 #'
@@ -152,7 +164,8 @@ csem_palette <- function(which = NULL) {
       smooth_col      = paste0("smoothed_csem.", key),
       label           = meta[[key]]$label,
       short           = meta[[key]]$short,
-      color           = unname(pal[key])
+      color           = unname(pal[key]),
+      pch             = unname(.csem_pch_values[key])
     )
   }
 
@@ -569,8 +582,10 @@ if (isTRUE(manage_par)) {
 #' @param compare_points Logical; also draw the per-person scatter for
 #'   each estimator.
 #' @param show_smooth Logical; draw the smoother curves.
-#' @param pch,cex,lwd,lty,alpha Graphical overrides passed through to
-#'   each series.
+#' @param cex,lwd,lty,alpha Graphical overrides passed through to each
+#'   series. `pch` is not an override here: each estimator uses a fixed
+#'   symbol from the package symbol map (open circle / diamond /
+#'   triangle), parallel to its palette colour.
 #' @param main,sub,xlab,ylab,ylim,xlim Annotation and axis overrides.
 #'   `main` defaults to the shared `"Relative conditional SEM"` label;
 #'   `ylim`, when `NULL`, is shared across the three series.
@@ -582,7 +597,7 @@ if (isTRUE(manage_par)) {
 .plot_csem_compare <- function(x, series_list, theme_settings,
                                compare_points = FALSE,
                                show_smooth    = TRUE,
-                               pch = 16, cex = NULL, lwd = 2, lty = 1,
+                               cex = NULL, lwd = 2, lty = 1,
                                alpha = NULL,
                                main = NULL, sub = NULL,
                                xlab = NULL, ylab = NULL,
@@ -633,7 +648,7 @@ if (isTRUE(manage_par)) {
                       plot_type = inner_plot_type, bands = NULL,
                       manage_par = FALSE,
                       col = series_list[[i]]$color,
-                      pch = pch, cex = cex, lwd = lwd, lty = lty,
+                      pch = series_list[[i]]$pch, cex = cex, lwd = lwd, lty = lty,
                       alpha = alpha,
                       main = main, sub = sub, xlab = xlab, ylab = ylab,
                       ylim = ylim, xlim = xlim,
@@ -648,7 +663,11 @@ if (isTRUE(manage_par)) {
     col    = vapply(series_list, `[[`, character(1), "color"),
     lwd    = lwd,
     lty    = lty,
-    pch    = if (isTRUE(compare_points)) pch else NA,
+    pch    = if (isTRUE(compare_points)) {
+      vapply(series_list, `[[`, numeric(1), "pch")
+    } else {
+      NA
+    },
     bty    = "n"
   )
 
@@ -823,10 +842,10 @@ plot.csem <- function(x,
            "are no curves to overlay. Set compare_points = TRUE to ",
            "overlay the per-person scatter instead.", call. = FALSE)
     }
-    .plot_csem_compare(x, series, theme_settings,
+.plot_csem_compare(x, series, theme_settings,
                        compare_points = compare_points,
                        show_smooth = show_smooth,
-                       pch = pch, cex = cex, lwd = lwd, lty = lty,
+                       cex = cex, lwd = lwd, lty = lty,
                        alpha = alpha, main = main, sub = sub,
                        xlab = xlab, ylab = ylab, ylim = ylim, xlim = xlim,
                        ...)
