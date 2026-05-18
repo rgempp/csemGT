@@ -64,7 +64,6 @@ scatter for every estimator.</p>
 <span>  <span class="va">theme_settings</span>,</span>
 <span>  compare_points <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  show_smooth <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  pch <span class="op">=</span> <span class="fl">16</span>,</span>
 <span>  cex <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lwd <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  lty <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -105,9 +104,11 @@ each estimator.</p></dd>
 <dd><p>Logical; draw the smoother curves.</p></dd>
 
 
-<dt id="arg-pch-cex-lwd-lty-alpha">pch, cex, lwd, lty, alpha<a class="anchor" aria-label="anchor" href="#arg-pch-cex-lwd-lty-alpha"></a></dt>
-<dd><p>Graphical overrides passed through to
-each series.</p></dd>
+<dt id="arg-cex-lwd-lty-alpha">cex, lwd, lty, alpha<a class="anchor" aria-label="anchor" href="#arg-cex-lwd-lty-alpha"></a></dt>
+<dd><p>Graphical overrides passed through to each
+series. `pch` is not an override here: each estimator uses a fixed
+symbol from the package symbol map (open circle / diamond /
+triangle), parallel to its palette colour.</p></dd>
 
 
 <dt id="arg-main-sub-xlab-ylab-ylim-xlim">main, sub, xlab, ylab, ylim, xlim<a class="anchor" aria-label="anchor" href="#arg-main-sub-xlab-ylab-ylim-xlim"></a></dt>

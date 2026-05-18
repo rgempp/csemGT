@@ -16,7 +16,6 @@ scatter for every estimator.
   theme_settings,
   compare_points = FALSE,
   show_smooth = TRUE,
-  pch = 16,
   cex = NULL,
   lwd = 2,
   lty = 1,
@@ -53,9 +52,12 @@ scatter for every estimator.
 
   Logical; draw the smoother curves.
 
-- pch, cex, lwd, lty, alpha:
+- cex, lwd, lty, alpha:
 
-  Graphical overrides passed through to each series.
+  Graphical overrides passed through to each series. \`pch\` is not an
+  override here: each estimator uses a fixed symbol from the package
+  symbol map (open circle / diamond / triangle), parallel to its palette
+  colour.
 
 - main, sub, xlab, ylab, ylim, xlim:
 
