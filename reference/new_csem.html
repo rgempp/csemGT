@@ -62,6 +62,7 @@ call this directly.</p>
 <span>  <span class="va">arguments</span>,</span>
 <span>  variance_components <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  smooth_fits <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  diagnostics <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bootstrap <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scale_transform <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">n_persons</span>,</span>
@@ -115,6 +116,11 @@ components (used by the GT paradigm). May be `NULL`.</p></dd>
 <dt id="arg-smooth-fits">smooth_fits<a class="anchor" aria-label="anchor" href="#arg-smooth-fits"></a></dt>
 <dd><p>Named list of smoother diagnostics (one element
 per smoothed column). May be `NULL`.</p></dd>
+
+
+<dt id="arg-diagnostics">diagnostics<a class="anchor" aria-label="anchor" href="#arg-diagnostics"></a></dt>
+<dd><p>Named list of smoother sample-size diagnostics
+(`n_floor`, `n_ceiling`, `n_fit`). May be `NULL`.</p></dd>
 
 
 <dt id="arg-bootstrap">bootstrap<a class="anchor" aria-label="anchor" href="#arg-bootstrap"></a></dt>

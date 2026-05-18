@@ -18,6 +18,7 @@ new_csem(
   arguments,
   variance_components = NULL,
   smooth_fits = NULL,
+  diagnostics = NULL,
   bootstrap = NULL,
   scale_transform = NULL,
   n_persons,
@@ -69,6 +70,11 @@ new_csem(
 
   Named list of smoother diagnostics (one element per smoothed column).
   May be \`NULL\`.
+
+- diagnostics:
+
+  Named list of smoother sample-size diagnostics (\`n_floor\`,
+  \`n_ceiling\`, \`n_fit\`). May be \`NULL\`.
 
 - bootstrap:
 

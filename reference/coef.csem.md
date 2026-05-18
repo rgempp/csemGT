@@ -48,15 +48,4 @@ coef(fit)$reliability_coefficients
 #> $phi_lambda
 #> [1] NA
 #> 
-#> $smoothing_diagnostics
-#> $smoothing_diagnostics$n_floor
-#> [1] NA
-#> 
-#> $smoothing_diagnostics$n_ceiling
-#> [1] NA
-#> 
-#> $smoothing_diagnostics$n_fit
-#> [1] NA
-#> 
-#> 
 ```
