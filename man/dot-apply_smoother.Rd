@@ -2,10 +2,10 @@
 % Please edit documentation in R/utils-smoothing.R
 \name{.apply_smoother}
 \alias{.apply_smoother}
-\title{Smooth `csem_var.*` columns of a by-score table}
+\title{Smooth `csem_var.*` columns of a per-person wide table}
 \usage{
 .apply_smoother(
-  by_score,
+  per_person_wide,
   smoother = "polynomial",
   smoother_args = list(degree = 2),
   exclude_extremes = FALSE,
@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{by_score}{Data frame with at least `observed_score` and one or
+\item{per_person_wide}{Data frame with at least `observed_score` and one or
 more `csem_var.<suffix>` columns.}
 
 \item{smoother}{Character; `"polynomial"` (default) or `"none"`. The
@@ -22,7 +22,7 @@ more `csem_var.<suffix>` columns.}
 \item{smoother_args}{Named list. The element `degree` controls the
 polynomial degree (default 2).}
 
-\item{exclude_extremes}{Logical; if `TRUE`, rows of `by_score` whose
+\item{exclude_extremes}{Logical; if `TRUE`, rows of `per_person_wide` whose
 `observed_score` is in `score_extremes` are excluded from the OLS
 fit and their smoothed values are set to `NA`.}
 
@@ -30,7 +30,7 @@ fit and their smoothed values are set to `NA`.}
 `exclude_extremes = TRUE`. Typically `c(0, J)`.}
 }
 \value{
-The input `by_score` with new `smoothed_csem.<suffix>`
+The input `per_person_wide` with new `smoothed_csem.<suffix>`
   columns and two attributes: `"smooth_fits"` (a named list, one
   element per smoothed suffix) and `"smoothing_diagnostics"` (a list
   with `n_floor`, `n_ceiling`, `n_fit` — the floor, ceiling, and
@@ -39,7 +39,7 @@ The input `by_score` with new `smoothed_csem.<suffix>`
   neither attribute.
 }
 \description{
-For each `csem_var.<suffix>` column in `by_score`, fits an ordinary
+For each `csem_var.<suffix>` column in `per_person_wide`, fits an ordinary
 least squares polynomial regression of the variance on the observed
 score and takes the square root of the fitted values, leaving the
 smoothed CSEM undefined (`NA`) where the fitted variance is negative,

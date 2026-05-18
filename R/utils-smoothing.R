@@ -2,9 +2,9 @@
 # score (Brennan, 2001, p. 162). Polynomial degree is configurable but
 # the default (degree = 2) gives the cross-package canonical behavior.
 
-#' Smooth `csem_var.*` columns of a by-score table
+#' Smooth `csem_var.*` columns of a per-person wide table
 #'
-#' For each `csem_var.<suffix>` column in `by_score`, fits an ordinary
+#' For each `csem_var.<suffix>` column in `per_person_wide`, fits an ordinary
 #' least squares polynomial regression of the variance on the observed
 #' score and takes the square root of the fitted values, leaving the
 #' smoothed CSEM undefined (`NA`) where the fitted variance is negative,
@@ -18,19 +18,19 @@
 #' adjusted `sqrt(SSE / (N - k - 1))` that `summary(lm(.))$sigma`
 #' returns. This choice preserves cross-package parity.
 #'
-#' @param by_score Data frame with at least `observed_score` and one or
+#' @param per_person_wide Data frame with at least `observed_score` and one or
 #'   more `csem_var.<suffix>` columns.
 #' @param smoother Character; `"polynomial"` (default) or `"none"`. The
 #'   `"none"` value returns the input unchanged.
 #' @param smoother_args Named list. The element `degree` controls the
 #'   polynomial degree (default 2).
-#' @param exclude_extremes Logical; if `TRUE`, rows of `by_score` whose
+#' @param exclude_extremes Logical; if `TRUE`, rows of `per_person_wide` whose
 #'   `observed_score` is in `score_extremes` are excluded from the OLS
 #'   fit and their smoothed values are set to `NA`.
 #' @param score_extremes Numeric vector of scores to exclude when
 #'   `exclude_extremes = TRUE`. Typically `c(0, J)`.
 #'
-#' @return The input `by_score` with new `smoothed_csem.<suffix>`
+#' @return The input `per_person_wide` with new `smoothed_csem.<suffix>`
 #'   columns and two attributes: `"smooth_fits"` (a named list, one
 #'   element per smoothed suffix) and `"smoothing_diagnostics"` (a list
 #'   with `n_floor`, `n_ceiling`, `n_fit` — the floor, ceiling, and
@@ -38,14 +38,14 @@
 #'   extremes are retained). The `smoother = "none"` passthrough sets
 #'   neither attribute.
 #' @keywords internal
-.apply_smoother <- function(by_score,
+.apply_smoother <- function(per_person_wide,
                             smoother         = "polynomial",
                             smoother_args    = list(degree = 2),
                             exclude_extremes = FALSE,
                             score_extremes   = NULL) {
 
   if (identical(smoother, "none")) {
-    return(by_score)
+    return(per_person_wide)
   }
   if (!identical(smoother, "polynomial")) {
     stop("Smoother '", smoother,
@@ -60,9 +60,9 @@
   degree <- as.integer(degree)
 
   if (exclude_extremes && !is.null(score_extremes)) {
-    fit_idx <- !(by_score$observed_score %in% score_extremes)
+    fit_idx <- !(per_person_wide$observed_score %in% score_extremes)
   } else {
-    fit_idx <- rep(TRUE, nrow(by_score))
+    fit_idx <- rep(TRUE, nrow(per_person_wide))
   }
 
   # Floor / ceiling / fit-sample counts for the smoother, mirroring the
@@ -73,9 +73,9 @@
   # exclude_extremes = FALSE every row feeds the fit and the counts are NA.
   if (exclude_extremes && !is.null(score_extremes)) {
     smoothing_diagnostics <- list(
-      n_floor   = sum(by_score$observed_score == score_extremes[1L],
+      n_floor   = sum(per_person_wide$observed_score == score_extremes[1L],
                       na.rm = TRUE),
-      n_ceiling = sum(by_score$observed_score == score_extremes[2L],
+      n_ceiling = sum(per_person_wide$observed_score == score_extremes[2L],
                       na.rm = TRUE),
       n_fit     = sum(fit_idx)
     )
@@ -94,13 +94,13 @@
   # carry NA (e.g. csem_var.analytic.* is NA where the point estimate is
   # <= 0). The [^.]+$ anchor excludes them: estimator names contain no
   # dot, the qualifiers introduce one.
-  ev_cols <- grep("^csem_var\\.[^.]+$", names(by_score), value = TRUE)
+  ev_cols <- grep("^csem_var\\.[^.]+$", names(per_person_wide), value = TRUE)
   if (length(ev_cols) == 0L) {
     # Nothing to smooth; pass through with empty smoother diagnostics but
     # still report the floor/ceiling/fit counts computed above.
-    attr(by_score, "smooth_fits")           <- list()
-    attr(by_score, "smoothing_diagnostics") <- smoothing_diagnostics
-    return(by_score)
+    attr(per_person_wide, "smooth_fits")           <- list()
+    attr(per_person_wide, "smoothing_diagnostics") <- smoothing_diagnostics
+    return(per_person_wide)
   }
 
   smooth_fits <- list()
@@ -108,8 +108,8 @@
   for (col in ev_cols) {
     suffix <- sub("^csem_var\\.", "", col)
 
-    y <- by_score[[col]]
-    x <- by_score$observed_score
+    y <- per_person_wide[[col]]
+    x <- per_person_wide$observed_score
 
     fit_data <- data.frame(y = y[fit_idx], x = x[fit_idx])
 
@@ -132,11 +132,11 @@
     csem_smooth[nonneg] <- sqrt(pred[nonneg])
 
     if (exclude_extremes && !is.null(score_extremes)) {
-      excluded_idx <- by_score$observed_score %in% score_extremes
+      excluded_idx <- per_person_wide$observed_score %in% score_extremes
       csem_smooth[excluded_idx] <- NA_real_
     }
 
-    by_score[[paste0("smoothed_csem.", suffix)]] <- csem_smooth
+    per_person_wide[[paste0("smoothed_csem.", suffix)]] <- csem_smooth
 
     # RMSE under the gtcsem.ado convention: sqrt(SSE / N)
     sse  <- sum(stats::residuals(fit)^2)
@@ -164,7 +164,7 @@
     )
   }
 
-  attr(by_score, "smooth_fits")           <- smooth_fits
-  attr(by_score, "smoothing_diagnostics") <- smoothing_diagnostics
-  by_score
+  attr(per_person_wide, "smooth_fits")           <- smooth_fits
+  attr(per_person_wide, "smoothing_diagnostics") <- smoothing_diagnostics
+  per_person_wide
 }

@@ -1044,8 +1044,8 @@
 # Final data-plumbing step of the csem_gt() pipeline (spec v4 §5.3 step 11).
 # After:
 #   .pivot_to_wide()      -> per_person_wide (one row per person)
+#   .apply_smoother()     -> per_person_wide + smoothed_csem.<estimator> columns
 #   .collapse_to_score()  -> by_score_wide   (one row per unique score)
-#   .apply_smoother()     -> by_score_wide + smoothed_csem.<estimator> columns
 # this helper carries the smoothed values back to every person by matching on
 # observed_score.
 # =============================================================================
@@ -1054,17 +1054,17 @@
 # .merge_smoothed_to_person(): attach smoothed_csem.* columns to per_person_wide
 #
 # .apply_smoother() writes one `smoothed_csem.<estimator>` column per smoothed
-# error-variance column onto the by-score table (already on the CSEM scale:
-# it applies sqrt(pmax(fitted, 0)) internally). This helper looks each person's
-# observed_score up in the by-score table and copies the corresponding
-# smoothed values across.
+# error-variance column onto the per-person wide table (already on the CSEM
+# scale: it applies sqrt(pmax(fitted, 0)) internally). This helper looks each
+# person's observed_score up in the by-score table and copies the
+# corresponding smoothed values across.
 #
 # Inputs
 #   per_person_wide : wide data.frame from .pivot_to_wide(); one row per
 #                     person; must carry an `observed_score` column.
-#   by_score_wide   : by-score data.frame from .apply_smoother(); one row per
-#                     unique observed score; carries `observed_score` and zero
-#                     or more `smoothed_csem.<estimator>` columns.
+#   by_score_wide   : by-score data.frame from .collapse_to_score(); one row
+#                     per unique observed score; carries `observed_score` and
+#                     zero or more `smoothed_csem.<estimator>` columns.
 #
 # Returns
 #   per_person_wide with every `smoothed_csem.<estimator>` column of
