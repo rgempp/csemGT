@@ -77,6 +77,8 @@ Measurement*, *22*(4), 307–331.
   Theory
 - [`csem_palette()`](https://gempp.cl/csemGT/reference/csem_palette.md)
   : The csemGT colour palette
+- [`iowa_like`](https://gempp.cl/csemGT/reference/iowa_like.md) :
+  Simulated ITED-like dichotomous responses (Brennan, 1998)
 - [`is.csem()`](https://gempp.cl/csemGT/reference/is.csem.md) : Test
   whether an object is a \`csem\` object
 - [`plot(`*`<csem>`*`)`](https://gempp.cl/csemGT/reference/plot.csem.md)
