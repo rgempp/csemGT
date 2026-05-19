@@ -1,0 +1,160 @@
+---
+title: "Introduction to csemGT"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to csemGT}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse   = TRUE,
+  comment    = "#>",
+  fig.align  = "center",
+  fig.width  = 7,
+  fig.height = 4.5,
+  out.width  = "100%"
+)
+```
+
+## Overview
+
+`csemGT` estimates *conditional* standard errors of measurement (CSEMs)
+under Generalizability Theory for the univariate single-facet design in
+which persons are crossed with items (a `p × i` design). Whereas a
+single overall SEM summarises measurement precision for a whole test,
+a conditional SEM describes how precision varies *along the score
+scale*, so that examinees at different observed-score levels can be
+assigned different error bands.
+
+The package implements the absolute-error estimator and the three
+relative-error estimators (`full`, `large_a`, `uncorrelated`) developed
+by Brennan (1998), together with optional polynomial smoothing of the
+conditional error variances across the score scale and analytical or
+bootstrap standard errors for the per-person estimates. `csemGT` is the
+R companion to the Stata `gtcsem` command and reproduces its numerical
+results.
+
+This vignette walks through a minimal analysis. For the full argument
+list see `?csem_gt`; for replications of published examples see the
+*Examples* vignette.
+
+## Installation
+
+```{r install, eval = FALSE}
+# install.packages("remotes")
+remotes::install_github("rgempp/csemGT")
+```
+
+The `mirt` package is an optional dependency used only by some of the
+worked examples in the *Examples* vignette; it is not required for the
+core functionality shown here.
+
+## A minimal example
+
+The package ships with `iowa_like`, a simulated `3000 × 40` matrix of
+dichotomously scored item responses. It is **not** real test data: it
+was generated from a Rasch model whose parameters were calibrated so
+that its ANOVA-based mean error variances match the values Brennan
+(1998, p. 314) reports for the ITED Vocabulary Test example. See
+`?iowa_like` for the full provenance.
+
+To keep the vignette fast we draw a reproducible subsample of 600
+persons; the analysis is otherwise identical on the full matrix.
+
+```{r fit}
+library(csemGT)
+data(iowa_like)
+
+set.seed(1998)
+iowa_sub <- iowa_like[sample(nrow(iowa_like), 600), ]
+
+fit <- csem_gt(iowa_sub, error_type = "relative", method = "full")
+```
+
+`error_type = "relative"` requests the relative (δ-type) conditional
+error variance, and `method = "full"` selects Brennan's finite-sample
+estimator (Equations 35–36), which is the default. No bootstrap is
+requested, so standard errors are the closed-form analytical
+approximation.
+
+## Inspecting the fit: `print()`
+
+```{r print}
+fit
+```
+
+The printed report is organised in blocks. The header records the
+design and the estimation choices. The ANOVA table gives the
+person, item, and residual mean squares and the corresponding
+variance components. The D-study block reports the overall absolute
+and relative error variances and SEMs: here
+$\hat{\sigma}^2(\Delta) \approx .0051$ and
+$\hat{\sigma}^2(\delta) \approx .0048$, closely reproducing the values
+Brennan (1998) reports for the ITED Vocabulary Test and confirming that
+the 600-person subsample preserves the calibrated properties of the
+full dataset. The reliability-like coefficients (generalizability
+coefficient $E\rho^2$ and dependability coefficient $\Phi$) and the
+quadratic smoothing fit close the report.
+
+## Per-score view: `summary()`
+
+```{r summary}
+summary(fit)
+```
+
+`summary()` adds the conditional SEM tabulated by observed score,
+together with each score group's size, cumulative frequency, and
+percentile. Reading down the `rel_full` column shows the
+characteristic concave pattern: the relative CSEM is small at the
+extremes of the score scale, rises to a maximum near the middle, and
+declines again — the same shape Brennan (1998, Figure 1d) obtained for
+the fitted relative SEM of a dichotomously scored test.
+
+## Visualising: `plot()`
+
+```{r plot}
+plot(fit)
+```
+
+The default plot shows the per-person relative conditional SEM against
+observed score, overlaid with the fitted quadratic smooth. Additional
+layouts — comparing estimators in a single panel, side-by-side panels,
+and analytical or bootstrap confidence bands — are documented in
+`?plot.csem` and demonstrated in the *Examples* vignette.
+
+## The fitted object
+
+`csem_gt()` returns an object of class `"csem"`. Its main components
+are the per-person estimates (`$estimates`), the by-score table
+(`$by_score`), the G-study variance components
+(`$variance_components`), the smoothing fits (`$smooth_fits`), and the
+smoother sample diagnostics (`$diagnostics`). Convenience accessors are
+provided:
+
+```{r accessors}
+str(fit, max.level = 1)
+
+# variance components
+coef(fit)
+
+# by-score table as a data frame
+head(by_score(fit))
+```
+
+## Next steps
+
+- `?csem_gt` documents every argument, including bootstrap options,
+  polynomial smoothing, extreme-score handling, and the `n_items_D`
+  D-study generalisation.
+- The *Examples* vignette replicates published analyses, including a
+  multi-panel comparison of the relative-error estimators.
+- The Stata `gtcsem` command produces the same estimates for users
+  working in that environment.
+
+## References
+
+Brennan, R. L. (1998). Raw-score conditional standard errors of
+measurement in generalizability theory. *Applied Psychological
+Measurement, 22*(4), 307–331.

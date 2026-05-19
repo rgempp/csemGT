@@ -24,3 +24,5 @@
 ^data-raw$
 ^_problems$
 ^tests/testthat/_problems$
+^doc$
+^Meta$
