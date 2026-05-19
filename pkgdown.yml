@@ -1,8 +1,9 @@
 pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
-articles: {}
-last_built: 2026-05-19T19:44Z
+articles:
+  intro-csem-gt: intro-csem-gt.html
+last_built: 2026-05-19T20:16Z
 urls:
   reference: https://gempp.cl/csemGT/reference
   article: https://gempp.cl/csemGT/articles
