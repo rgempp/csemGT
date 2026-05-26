@@ -18,8 +18,8 @@ navbar:
       menu:
         - text: Introduction to csemGT
           href: articles/intro-csem-gt.html
-        - text: Replicating the paper examples
-          href: articles/paper-examples.html
+        - text: Worked examples
+          href: articles/examples.html
     - text: News
       href: news/index.html
   right:
@@ -35,7 +35,7 @@ navbar:
 #     navbar: ~
 #     contents:
 #       - intro-csem-gt
-#       - paper-examples
+#       - examples
 
 # La sección `reference` se completará en Sprints 2 y 3, conforme las
 # funciones y métodos se exporten. Estructura prevista:

@@ -1,0 +1,327 @@
+---
+title: "Worked examples"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Worked examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  fig.width = 6,
+  fig.height = 4,
+  fig.align = "center"
+)
+library(csemGT)
+```
+
+# Overview
+
+This vignette puts `csemGT` to work on three illustrations that
+parallel, in simplified form, the worked examples in the companion
+Stata paper for `gtcsem`. The polytomous extension of the first
+example (the CES-D weekly scoring case in the Stata paper) is omitted
+here because it depends on clinical data that are not publicly
+available. In exchange, the bootstrap option is showcased below,
+complementing the analytical SEs reported throughout the paper.
+
+The three examples are:
+
+1. A binary educational test, where we verify the equivalence of GT's
+   absolute CSEM with Lord's (1955) binomial-error formula, and then
+   introduce bootstrap SEs.
+2. A dichotomous SAT-style test, where we compare the three relative-
+   error estimators (`full`, `large_a`, `uncorrelated`) implemented
+   in `csem_gt()`.
+3. A Likert personality scale, where the smoother and the D-study
+   features take centre stage.
+
+The intro vignette (`vignette("intro-csem-gt", package = "csemGT")`)
+covers the bare estimation workflow; readers new to the package may
+prefer to start there.
+
+# Example 1: A binary educational test, verifying Lord (1955)
+
+In the dichotomous case, the absolute CSEM derived under
+Generalizability Theory for a single-facet $p \times i$ design
+collapses to Lord's (1955) classic binomial-error formula. Letting
+$X_p$ denote person $p$'s observed total raw score and $n_i$ the
+number of items,
+
+$$
+\hat{\sigma}(\Delta_p) \;=\; \frac{1}{n_i}\sqrt{\frac{X_p(n_i - X_p)}{n_i - 1}}.
+$$
+
+Brennan (1998) makes this equivalence explicit (his equation 8). We
+verify it numerically on `iowa_like`, a simulated ITED-Vocabulary-like
+dataset distributed with the package; see `?iowa_like` for the
+calibration details. To keep the example fast we work with a
+reproducible subsample of 600 persons.
+
+```{r ex1-subsample}
+set.seed(1998)
+idx <- sample(nrow(iowa_like), size = 600)
+sub <- iowa_like[idx, ]
+n_i <- ncol(sub)
+
+fit <- csem_gt(sub, error_type = "absolute", method = "full")
+```
+
+The package returns one fitted value per observed total score in
+`fit$by_score`. We compare those against the Lord formula evaluated
+at the same scores:
+
+```{r ex1-lord-check}
+score_tbl <- fit$by_score[, c("observed_score", "csem.absolute")]
+score_tbl$csem_lord <- with(
+  score_tbl,
+  sqrt(observed_score * (n_i - observed_score) / (n_i - 1)) / n_i
+)
+score_tbl$diff <- score_tbl$csem.absolute - score_tbl$csem_lord
+head(score_tbl, 8)
+
+max(abs(score_tbl$diff))
+```
+
+The maximum absolute discrepancy is at the floor of double precision;
+the two formulas are algebraically identical for the binary $p \times
+i$ design.
+
+```{r ex1-plot, fig.cap = "Per-person absolute CSEM for the iowa_like subsample (n = 600, I = 40), full estimator."}
+plot(fit, main = "iowa_like: absolute CSEM by observed score")
+```
+
+## Adding bootstrap standard errors
+
+The CSEM values just shown are per-person *point estimates*: each one
+asks how precise this person's score is. A different question is how
+precise *that estimate of the precision* is itself, which is a
+second-order quantity. By default `csem_gt()` returns delta-method
+analytical SEs and confidence intervals for it; setting `bootstrap =
+TRUE` together with `return_analytical = TRUE` adds
+item-resampling bootstrap counterparts in the same fit, without
+displacing the analytical ones.
+
+```{r ex1-bootstrap}
+fit_boot <- csem_gt(
+  sub,
+  error_type        = "absolute",
+  method            = "full",
+  bootstrap         = TRUE,
+  return_analytical = TRUE,
+  R                 = 200L,
+  bootstrap_type    = "item",
+  ci_method         = "percentile",
+  seed              = 1998
+)
+```
+
+Five randomly chosen persons illustrate the side-by-side layout that
+the resulting `estimates` table now carries:
+
+```{r ex1-bootstrap-table}
+cols <- c("observed_score", "csem.absolute",
+          "se.analytic.absolute",     "se.boot.absolute",
+          "ci_low.analytic.absolute", "ci_up.analytic.absolute",
+          "ci_low.boot.absolute",     "ci_up.boot.absolute")
+fit_boot$estimates[1:5, cols]
+```
+
+For the binary $p \times i$ design the two SE sources should agree to
+within Monte-Carlo error; sizable discrepancies would point to
+sample-size or distributional issues worth investigating. A larger
+`R` will tighten the bootstrap interval; here we keep `R = 200` to
+keep the vignette fast to build.
+
+# Example 2: A dichotomous educational test, comparing estimators (SAT12)
+
+The second example uses the SAT12 science items from package `mirt`
+(Chalmers, 2012). `mirt` is a `Suggests`, so the chunks below run
+only when it is installed:
+
+```{r ex2-deps}
+has_mirt <- requireNamespace("mirt", quietly = TRUE)
+```
+
+We score the multiple-choice items dichotomously against the
+published key (with one corrected entry at item 32):
+
+```{r ex2-key, eval = has_mirt}
+key <- c(1, 4, 5, 2, 3, 1, 2, 1,
+         3, 1, 2, 4, 2, 1, 5, 3,
+         4, 4, 1, 4, 3, 3, 4, 1,
+         3, 5, 1, 3, 1, 5, 4, 3)
+
+scored <- mirt::key2binary(mirt::SAT12, key)
+scored <- scored[stats::complete.cases(scored), ]
+dim(scored)
+```
+
+A single `csem_gt()` call lists all three relative-error estimators at
+once and disables the smoother (we want the raw scatter, not a
+quadratic summary):
+
+```{r ex2-fit, eval = has_mirt}
+fit_sat <- csem_gt(
+  scored,
+  error_type = "relative",
+  method     = c("full", "large_a", "uncorrelated"),
+  smoother   = "none"
+)
+```
+
+The compare layout overlays the three estimators on one panel, with
+the per-person scatter (`compare_points = TRUE`) showing where they
+agree, where they diverge, and where the `uncorrelated` estimator
+returns negative error variance for individual respondents. Those
+cases are coerced to zero by default and recorded in
+`fit_sat$diagnostics`:
+
+```{r ex2-plot, eval = has_mirt, fig.cap = "Relative CSEM under the three estimators implemented by csem_gt() for the SAT12 science test."}
+plot(
+  fit_sat,
+  compare_methods = TRUE,
+  compare_points  = TRUE,
+  show_smooth     = FALSE
+)
+```
+
+The `full` estimator carries within-score heterogeneity (multiple
+points at the same observed score, reflecting the person-by-item
+covariance term in equation 33 of Brennan, 1998); `large_a` collapses
+that to a single value per score by replacing the covariance term
+with its large-$A$ approximation; `uncorrelated` drops the term
+entirely, which is what produces the negative-variance cases at
+extreme scores.
+
+# Example 3: A Likert personality scale, smoother and D-study
+
+For polytomous data with non-binary response options the
+`csem_gt()` interface applies without modification. We use
+`ipip_like`, a simulated 10-item, 5-point Conscientiousness-like
+subscale calibrated to summary statistics of the IPIP-50 inventory
+(Goldberg, 1992; Goldberg, Johnson, Eber, Hogan, Ashton, Cloninger,
+& Gough, 2006). See `?ipip_like` for calibration details.
+
+```{r ex3-fit}
+fit_ip <- csem_gt(
+  ipip_like,
+  error_type = "relative",
+  method     = "full",
+  smoother   = "polynomial"
+)
+```
+
+The recovered variance components and the generalizability coefficient
+$E\rho^2$ live in `fit_ip$variance_components`:
+
+```{r ex3-components}
+fit_ip$variance_components$person
+fit_ip$variance_components$item
+fit_ip$variance_components$residual
+fit_ip$variance_components$reliability_coefficients$erho2
+```
+
+These match, to ANOVA tolerance, the calibration targets documented
+in `?ipip_like` ($\sigma^2(p) \approx 0.434$,
+$\sigma^2(i) \approx 0.136$, $\sigma^2(pi) \approx 1.000$,
+$E\rho^2 \approx 0.81$). The wide per-person table can be inspected
+via the data-frame method:
+
+```{r ex3-as-df}
+as.data.frame(fit_ip)[1:5, ]
+```
+
+For Likert data the within-score spread of the CSEM tends to be
+larger than for binary data, and the quadratic smoother carries less
+of that variation than in the educational examples. The plot with
+`cibands = "model"` shows the 95% confidence band around the
+quadratic fit, which is the layout used as Figure 3 of the Stata
+paper:
+
+```{r ex3-plot, fig.cap = "Relative CSEM against the observed score for ipip_like, with the 95% CI band around the quadratic fit."}
+plot(fit_ip, plot_type = "both", cibands = "model")
+```
+
+## D-study: projecting to a different test length
+
+Generalizability Theory projects the precision of a test to
+alternative test lengths via the D-study (Brennan, 2001). In
+`csem_gt()` this is controlled by `n_items_D`: passing it a value
+different from the observed number of items rescales the error
+variances and reliability coefficients to that hypothetical
+length, while the G-study variance components themselves remain
+fixed.
+
+```{r ex3-dstudy}
+fit_05 <- csem_gt(
+  ipip_like,
+  error_type = "relative", method = "full",
+  smoother   = "none",
+  n_items_D  = 5L
+)
+fit_20 <- csem_gt(
+  ipip_like,
+  error_type = "relative", method = "full",
+  smoother   = "none",
+  n_items_D  = 20L
+)
+
+rho_ref <- fit_ip$variance_components$reliability_coefficients$erho2
+spearman_brown <- function(rho, K) (K * rho) / (1 + (K - 1) * rho)
+
+dstudy <- data.frame(
+  test_length = c(5L, 10L, 20L),
+  erho2_gt    = c(
+    fit_05$variance_components$reliability_coefficients$erho2,
+    rho_ref,
+    fit_20$variance_components$reliability_coefficients$erho2
+  ),
+  erho2_sb    = c(
+    spearman_brown(rho_ref, 0.5),
+    rho_ref,
+    spearman_brown(rho_ref, 2.0)
+  )
+)
+dstudy$diff <- dstudy$erho2_gt - dstudy$erho2_sb
+dstudy
+```
+
+The csem_gt projection and the Spearman-Brown predicted reliability
+agree closely. The small remaining differences reflect the way GT
+treats the item-variance term, which Spearman-Brown's classical
+derivation assumes away. For longer tests both values converge to the
+same asymptote.
+
+# References
+
+Brennan, R. L. (1998). Raw-score conditional standard errors of
+measurement in generalizability theory. *Applied Psychological
+Measurement, 22*(4), 307-331.
+<https://doi.org/10.1177/01466216980224002>
+
+Brennan, R. L. (2001). *Generalizability theory*. Springer.
+
+Chalmers, R. P. (2012). mirt: A multidimensional item response theory
+package for the R environment. *Journal of Statistical Software,
+48*(6), 1-29. <https://doi.org/10.18637/jss.v048.i06>
+
+Goldberg, L. R. (1992). The development of markers for the Big-Five
+factor structure. *Psychological Assessment, 4*(1), 26-42.
+<https://doi.org/10.1037/1040-3590.4.1.26>
+
+Goldberg, L. R., Johnson, J. A., Eber, H. W., Hogan, R., Ashton,
+M. C., Cloninger, C. R., & Gough, H. G. (2006). The International
+Personality Item Pool and the future of public-domain personality
+measures. *Journal of Research in Personality, 40*(1), 84-96.
+<https://doi.org/10.1016/j.jrp.2005.08.007>
+
+Lord, F. M. (1955). Estimating test reliability. *Educational and
+Psychological Measurement, 15*(4), 325-336.
+<https://doi.org/10.1177/001316445501500401>
+
+Open-Source Psychometrics Project. (n.d.). *Raw data*.
+<https://openpsychometrics.org/rawdata/>

@@ -11,7 +11,7 @@
 # distributed with mirt.
 #
 # Quantitative replications of the paper examples, on calibrated or
-# real datasets, belong to the `paper-examples` vignette and not here.
+# real datasets, belong to the `examples` vignette and not here.
 #
 # Snapshots live in tests/testthat/_snaps/plot-vdiffr/. On the first
 # run, vdiffr creates the baseline SVGs and the tests pass with a
