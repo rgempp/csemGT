@@ -1,0 +1,23 @@
+citHeader("To cite csemGT in publications, please use:")
+
+bibentry(
+  bibtype = "Manual",
+  title   = "csemGT: Conditional Standard Error of Measurement in Generalizability Theory",
+  author  = person("Ren\u00e9", "Gempp"),
+  year    = "2026",
+  note    = "R package version 1.0.0",
+  url     = "https://gempp.cl/csemGT/"
+)
+
+bibentry(
+  bibtype = "Article",
+  title   = "Raw-score conditional standard errors of measurement in generalizability theory",
+  author  = person("Robert L.", "Brennan"),
+  journal = "Applied Psychological Measurement",
+  year    = "1998",
+  volume  = "22",
+  number  = "4",
+  pages   = "307--331",
+  doi     = "10.1177/014662169802200401",
+  header  = "Please also cite the underlying methodology:"
+)
