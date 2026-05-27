@@ -26,10 +26,10 @@ entry is an integer in \\\\1, 2, 3, 4, 5\\\\. Columns are named
 Simulated to be broadly comparable to the Conscientiousness subscale of
 the IPIP-50 inventory, as administered in the public dataset of the
 Open-Source Psychometrics Project
-(<https://openpsychometrics.org/rawdata/>). The underlying instrument is
-described in Goldberg, L. R. (1992) and Goldberg, L. R., Johnson, J. A.,
-Eber, H. W., Hogan, R., Ashton, M. C., Cloninger, C. R., & Gough, H. G.
-(2006).
+(<https://openpsychometrics.org/_rawdata/>). The underlying instrument
+is described in Goldberg, L. R. (1992) and Goldberg, L. R., Johnson, J.
+A., Eber, H. W., Hogan, R., Ashton, M. C., Cloninger, C. R., & Gough, H.
+G. (2006).
 
 ## Details
 
@@ -63,7 +63,7 @@ Item Pool and the future of public-domain personality measures. *Journal
 of Research in Personality, 40*(1), 84-96.
 
 Open-Source Psychometrics Project. (n.d.). *Raw data*.
-<https://openpsychometrics.org/rawdata/>
+<https://openpsychometrics.org/_rawdata/>
 
 ## Examples
 
@@ -79,10 +79,46 @@ ipip_like[1:5, 1:6]
 #> [4,]      2      3      2      1      4      3
 #> [5,]      5      2      5      3      4      2
 
-if (FALSE) { # \dontrun{
+# \donttest{
 fit <- csem_gt(ipip_like, error_type = "relative", method = "full",
                smoother = "polynomial")
 fit
+#> ----------------------------------------------------------------
+#> Conditional SEMs in Generalizability Theory
+#> ----------------------------------------------------------------
+#> Design          :  univariate single-facet (p x i, crossed)
+#> Persons (n_p)   :  2000
+#> G-study items   :  10
+#> D-study items   :  10
+#> Method          :  full
+#> SE method       :  analytical
+#> Smoothing       :  quadratic on observed score
+#> ANOVA table
+#> ----------------------------------------------------------------
+#>   Effect    df              SS              MS         sigma^2
+#> ----------------------------------------------------------------
+#>   p         1999    10709.670200        5.357514      0.435002
+#>   i            9     2490.601200      276.733467      0.137863
+#>   pi       17991    18125.798800        1.007493      1.007493
+#> D-study error variances and SEMs (n_i' = 10)
+#> ----------------------------------------------------------------
+#>   sigma^2(Delta) =   0.114536      sigma(Delta) = 0.338431  (absolute)
+#>   sigma^2(delta) =   0.100749      sigma(delta) = 0.317410  (relative)
+#> Reliability-like coefficients
+#> ----------------------------------------------------------------
+#>   Generalizability coef.    E rho^2     =   0.8119
+#>   Dependability coef.       Phi         =   0.7916
+#> Quadratic smoothing fits  (y = b0 + b1*score + b2*score^2)
+#> --------------------------------------------------------------------------
+#>   Quantity              b0         b1         b2        R^2       RMSE
+#> --------------------------------------------------------------------------
+#>   rel_ev_full          -0.12526    0.16103   -0.02677     0.1761    0.04126
+#> Mean variance of estimator across persons
+#> ----------------------------------------------------------------
+#>   Quantity              Analytical
+#> ----------------------------------
+#>   rel_ev_full         7.243653e-03
 plot(fit, plot_type = "both", cibands = "model")
-} # }
+
+# }
 ```

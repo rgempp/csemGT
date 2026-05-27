@@ -156,7 +156,7 @@ fit_boot$estimates[1:5, cols]
 ```
 
 For the binary $`p \times i`$ design the two SE sources should agree to
-within Monte-Carlo error; sizable discrepancies would point to
+within Monte-Carlo error; sizeable discrepancies would point to
 sample-size or distributional issues worth investigating. A larger `R`
 will tighten the bootstrap interval; here we keep `R = 200` to keep the
 vignette fast to build.
@@ -380,7 +380,7 @@ asymptote.
 Brennan, R. L. (1998). Raw-score conditional standard errors of
 measurement in generalizability theory. *Applied Psychological
 Measurement, 22*(4), 307-331.
-<https://doi.org/10.1177/01466216980224002>
+<https://doi.org/10.1177/014662169802200401>
 
 Brennan, R. L. (2001). *Generalizability theory*. Springer.
 
@@ -403,4 +403,4 @@ Psychological Measurement, 15*(4), 325-336.
 <https://doi.org/10.1177/001316445501500401>
 
 Open-Source Psychometrics Project. (n.d.). *Raw data*.
-<https://openpsychometrics.org/rawdata/>
+<https://openpsychometrics.org/_rawdata/>

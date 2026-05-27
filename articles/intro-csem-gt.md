@@ -4,11 +4,11 @@
 
 `csemGT` estimates *conditional* standard errors of measurement (CSEMs)
 under Generalizability Theory for the univariate single-facet design in
-which persons are crossed with items (a `p × i` design). Whereas a
-single overall SEM summarises measurement precision for a whole test, a
-conditional SEM describes how precision varies *along the score scale*,
-so that examinees at different observed-score levels can be assigned
-different error bands.
+which persons are crossed with items (a `p $\times$ i` design). Whereas
+a single overall SEM summarises measurement precision for a whole test,
+a conditional SEM describes how precision varies *along the score
+scale*, so that examinees at different observed-score levels can be
+assigned different error bands.
 
 The package implements the absolute-error estimator and the three
 relative-error estimators (`full`, `large_a`, `uncorrelated`) developed
@@ -36,11 +36,11 @@ core functionality shown here.
 
 ## A minimal example
 
-The package ships with `iowa_like`, a simulated `3000 × 40` matrix of
-dichotomously scored item responses. It is **not** real test data: it
-was generated from a Rasch model whose parameters were calibrated so
-that its ANOVA-based mean error variances match the values Brennan
-(1998, p. 314) reports for the ITED Vocabulary Test example. See
+The package ships with `iowa_like`, a simulated `3000 $\times$ 40`
+matrix of dichotomously scored item responses. It is **not** real test
+data: it was generated from a Rasch model whose parameters were
+calibrated so that its ANOVA-based mean error variances match the values
+Brennan (1998, p. 314) reports for the ITED Vocabulary Test example. See
 [`?iowa_like`](https://gempp.cl/csemGT/reference/iowa_like.md) for the
 full provenance.
 
@@ -58,11 +58,11 @@ iowa_sub <- iowa_like[sample(nrow(iowa_like), 600), ]
 fit <- csem_gt(iowa_sub, error_type = "relative", method = "full")
 ```
 
-`error_type = "relative"` requests the relative (δ-type) conditional
-error variance, and `method = "full"` selects Brennan’s finite-sample
-estimator (Equations 35–36), which is the default. No bootstrap is
-requested, so standard errors are the closed-form analytical
-approximation.
+`error_type = "relative"` requests the relative ($`\delta`$-type)
+conditional error variance, and `method = "full"` selects Brennan’s
+finite-sample estimator (Equations 35–36), which is the default. No
+bootstrap is requested, so standard errors are the closed-form
+analytical approximation.
 
 ## Inspecting the fit: `print()`
 

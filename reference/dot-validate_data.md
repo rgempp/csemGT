@@ -41,8 +41,7 @@ persons by 2 items.
 
 - require_dichotomous:
 
-  Logical; reserved for \`csemR\`'s binomial paradigm. Ignored in
-  \`csemGT\`.
+  Logical; reserved for future use. Ignored in \`csemGT\`.
 
 ## Value
 

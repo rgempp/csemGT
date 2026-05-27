@@ -64,9 +64,45 @@ iowa_like[1:5, 1:6]
 ## Relative conditional SEM, 'full' estimator (the default),
 ## reproducing the kind of dispersion seen in Brennan (1998),
 ## Figure 1b/1d.
-if (FALSE) { # \dontrun{
+# \donttest{
 fit <- csem_gt(iowa_like, error_type = "relative", method = "full")
 fit
+#> ----------------------------------------------------------------
+#> Conditional SEMs in Generalizability Theory
+#> ----------------------------------------------------------------
+#> Design          :  univariate single-facet (p x i, crossed)
+#> Persons (n_p)   :  3000
+#> G-study items   :  40
+#> D-study items   :  40
+#> Method          :  full
+#> SE method       :  analytical
+#> Smoothing       :  quadratic on observed score
+#> ANOVA table
+#> ----------------------------------------------------------------
+#>   Effect    df              SS              MS         sigma^2
+#> ----------------------------------------------------------------
+#>   p         2999     4939.862500        1.647170      0.036475
+#>   i           39     1880.001833       48.205175      0.016006
+#>   pi      116961    22009.948167        0.188182      0.188182
+#> D-study error variances and SEMs (n_i' = 40)
+#> ----------------------------------------------------------------
+#>   sigma^2(Delta) =   0.005105      sigma(Delta) = 0.071447  (absolute)
+#>   sigma^2(delta) =   0.004705      sigma(delta) = 0.068590  (relative)
+#> Reliability-like coefficients
+#> ----------------------------------------------------------------
+#>   Generalizability coef.    E rho^2     =   0.8858
+#>   Dependability coef.       Phi         =   0.8772
+#> Quadratic smoothing fits  (y = b0 + b1*score + b2*score^2)
+#> --------------------------------------------------------------------------
+#>   Quantity              b0         b1         b2        R^2       RMSE
+#> --------------------------------------------------------------------------
+#>   rel_ev_full           0.00043    0.02149   -0.02150     0.8893    0.00041
+#> Mean variance of estimator across persons
+#> ----------------------------------------------------------------
+#>   Quantity              Analytical
+#> ----------------------------------
+#>   rel_ev_full         6.935315e-05
 plot(fit)
-} # }
+
+# }
 ```

@@ -1,9 +1,8 @@
 # Construct a \`csem\` object
 
 Low-level constructor for the \`csem\` S3 class. This is an internal
-building block used by \`csem_gt()\` and (eventually) the other
-\`csem\_\*()\` paradigms in the \`csemR\` family. End users should not
-call this directly.
+building block used by \`csem_gt()\`. End users should not call this
+directly.
 
 ## Usage
 
