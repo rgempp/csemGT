@@ -127,9 +127,16 @@
     # gtcsem.ado convention, cond(ev_sm >= 0, sqrt(ev_sm), .). The
     # explicit index avoids feeding negatives to sqrt() (which would
     # emit a "NaNs produced" warning before the NA mask is applied).
-    csem_smooth <- rep(NA_real_, length(pred))
-    nonneg <- !is.na(pred) & pred >= 0
-    csem_smooth[nonneg] <- sqrt(pred[nonneg])
+    # Snap predictions that are essentially zero (within floating-point
+    # noise of around 1e-12) to exactly zero before the sign test, so that
+    # a perfect quadratic fit yields smoothed_csem = 0 (not NA) at score
+    # extremes regardless of the rounding mode of the platform.
+    pred_safe <- pred
+    near_zero <- !is.na(pred_safe) & abs(pred_safe) < 1e-12
+    pred_safe[near_zero] <- 0
+    csem_smooth <- rep(NA_real_, length(pred_safe))
+    nonneg <- !is.na(pred_safe) & pred_safe >= 0
+    csem_smooth[nonneg] <- sqrt(pred_safe[nonneg])
 
     if (exclude_extremes && !is.null(score_extremes)) {
       excluded_idx <- per_person_wide$observed_score %in% score_extremes

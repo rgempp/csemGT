@@ -22,6 +22,14 @@
                            relative_large_a      = "rel_ev_la",
                            relative_uncorrelated = "rel_ev_unc")
 
+# Snap IEEE 754 negative zero (and small floating-point noise) to a
+# canonical positive zero so that sprintf() emits "0.00000" rather than
+# "-0.00000" regardless of the platform libc.
+.snap_zero <- function(x, tol = 1e-12) {
+  x <- as.numeric(x)
+  x[!is.na(x) & abs(x) < tol] <- 0
+  x
+}
 
 # Header label for the "Method" line shared by print.csem() and
 # print.summary.csem(). `method` governs only the relative-error
@@ -175,7 +183,8 @@ print.csem <- function(x, ...) {
       f <- x$smooth_fits[[est]]
       cat(sprintf("  %-19s%10.5f %10.5f %10.5f %10.4f %10.5f\n",
                   .csem_estimator_label[[est]],
-                  f$b0, f$b1, f$b2, f$R2, f$RMSE))
+                  .snap_zero(f$b0), .snap_zero(f$b1), .snap_zero(f$b2),
+                  .snap_zero(f$R2), .snap_zero(f$RMSE)))
     }
   }
 
