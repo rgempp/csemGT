@@ -27,16 +27,6 @@ navbar:
       aria-label: GitHub
       href: https://github.com/rgempp/csemGT
 
-# La sección `articles` se completará en Sprint 4 cuando los .Rmd existan.
-# Estructura prevista (mantener comentado hasta Sprint 4):
-#
-# articles:
-#   - title: Tutorials
-#     navbar: ~
-#     contents:
-#       - intro-csem-gt
-#       - examples
-
 reference:
   - title: Estimation
     desc: >

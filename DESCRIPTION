@@ -3,29 +3,28 @@ Type: Package
 Title: Conditional Standard Error of Measurement in Generalizability Theory
 Version: 1.0.0
 Authors@R: c(
-    person("Rene", "Gempp", email = "rene.gempp@udp.cl",
-           role = c("aut", "cre"))
+    person("Ren\u00e9", "Gempp", email = "rene.gempp@udp.cl",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-0427-6894"))
   )
-Description: Estimates the conditional standard error of measurement
-    (CSEM) within the Generalizability Theory framework for the
-    persons-by-items single-facet crossed design (Brennan, 1998).
-    Returns person-level CSEM estimates for absolute and relative
-    error variances, with three estimators of the relative error
-    variance (full, large_a, uncorrelated), closed-form analytical
-    and item-resampling bootstrap sampling variances, quadratic
-    smoothing of CSEMs on observed score, D-study extrapolation,
-    and post-estimation plotting in base graphics. This is a focused
-    release; the broader 'csemR' package, in development, will provide
-    additional families of CSEM estimators (split-half, ANOVA-based,
-    binomial and compound binomial). Users seeking the full suite
-    should install 'csemR' once available.
+Description: Estimates the per-person conditional standard error of
+    measurement (CSEM) under the persons-by-items single-facet
+    crossed design of Generalizability Theory, following
+    Brennan (1998) <doi:10.1177/014662169802200401>. Implements
+    three estimators of the relative error variance (full, large_a,
+    uncorrelated) and the closed-form absolute error variance, with
+    both analytical and item-resampling bootstrap sampling variances,
+    quadratic smoothing of CSEMs on observed score, D-study
+    extrapolation, and base-graphics plotting.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 4.1.0)
 Imports:
     stats,
-    utils
+    utils,
+    graphics,
+    grDevices
 Suggests:
     boot,
     mgcv,
