@@ -991,9 +991,7 @@
 #
 # Inputs
 #   per_person_long : data.frame in long-tidy format.
-#   paradigm        : character; currently only "gt" is supported (the
-#                     argument exists for forward compatibility with the
-#                     csemR multi-paradigm design).
+#   paradigm        : character; currently only "gt" is supported.
 #
 # Returns
 #   A wide data.frame with N rows. Column order: the person-constant columns

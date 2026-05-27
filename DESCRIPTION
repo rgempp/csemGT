@@ -41,5 +41,5 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 URL: https://github.com/rgempp/csemGT, https://gempp.cl/csemGT/
 BugReports: https://github.com/rgempp/csemGT/issues
-Language: en-US
+Language: en-GB
 Config/roxygen2/version: 8.0.0

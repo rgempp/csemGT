@@ -17,8 +17,8 @@
 #'   the single-facet crossed design is always balanced by construction.
 #' @param require_complete Logical; if `TRUE` (default), an error is raised
 #'   when missing values remain after `na_action` is applied.
-#' @param require_dichotomous Logical; reserved for `csemR`'s binomial
-#'   paradigm. Ignored in `csemGT`.
+#' @param require_dichotomous Logical; reserved for future use. Ignored
+#'   in `csemGT`.
 #'
 #' @return A numeric matrix, persons in rows, items in columns.
 #' @keywords internal

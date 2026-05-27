@@ -13,7 +13,7 @@ An integer matrix with 2000 rows (persons) and 10 columns
 Simulated to be broadly comparable to the Conscientiousness
   subscale of the IPIP-50 inventory, as administered in the public
   dataset of the Open-Source Psychometrics Project
-  (\url{https://openpsychometrics.org/rawdata/}). The underlying
+  (\url{https://openpsychometrics.org/_rawdata/}). The underlying
   instrument is described in Goldberg, L. R. (1992) and
   Goldberg, L. R., Johnson, J. A., Eber, H. W., Hogan, R., Ashton,
   M. C., Cloninger, C. R., & Gough, H. G. (2006).
@@ -75,6 +75,6 @@ Personality Item Pool and the future of public-domain personality
 measures. \emph{Journal of Research in Personality, 40}(1), 84-96.
 
 Open-Source Psychometrics Project. (n.d.). \emph{Raw data}.
-\url{https://openpsychometrics.org/rawdata/}
+\url{https://openpsychometrics.org/_rawdata/}
 }
 \keyword{datasets}

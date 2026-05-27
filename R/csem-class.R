@@ -3,9 +3,8 @@
 #' Construct a `csem` object
 #'
 #' Low-level constructor for the `csem` S3 class. This is an internal
-#' building block used by `csem_gt()` and (eventually) the other
-#' `csem_*()` paradigms in the `csemR` family. End users should not
-#' call this directly.
+#' building block used by `csem_gt()`. End users should not call this
+#' directly.
 #'
 #' @param estimates A data frame, one row per person, in wide format.
 #'   Must contain at minimum the identifier columns `person_id`,

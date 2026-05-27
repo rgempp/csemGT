@@ -135,9 +135,7 @@
 #' per-person sampling variance is then evaluated by aligning the
 #' replicate estimates with the original person index (or, equivalently
 #' for csem_gt, with the score level) and computing the empirical
-#' variance across replicates. This is the canonical bootstrap of the
-#' other paradigms (`csem_split_half`, `csem_anova`, `csem_binomial`)
-#' and is provided here for forward compatibility with `csemR`.
+#' variance across replicates. 
 #'
 #' @param data Numeric matrix \eqn{N \times J}.
 #' @param vc Output of `.gt_variance_components(data)` from the ORIGINAL

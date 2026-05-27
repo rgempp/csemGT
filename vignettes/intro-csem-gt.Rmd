@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 `csemGT` estimates *conditional* standard errors of measurement (CSEMs)
 under Generalizability Theory for the univariate single-facet design in
-which persons are crossed with items (a `p × i` design). Whereas a
+which persons are crossed with items (a `p $\times$ i` design). Whereas a
 single overall SEM summarises measurement precision for a whole test,
 a conditional SEM describes how precision varies *along the score
 scale*, so that examinees at different observed-score levels can be
@@ -53,7 +53,7 @@ core functionality shown here.
 
 ## A minimal example
 
-The package ships with `iowa_like`, a simulated `3000 × 40` matrix of
+The package ships with `iowa_like`, a simulated `3000 $\times$ 40` matrix of
 dichotomously scored item responses. It is **not** real test data: it
 was generated from a Rasch model whose parameters were calibrated so
 that its ANOVA-based mean error variances match the values Brennan
@@ -73,9 +73,9 @@ iowa_sub <- iowa_like[sample(nrow(iowa_like), 600), ]
 fit <- csem_gt(iowa_sub, error_type = "relative", method = "full")
 ```
 
-`error_type = "relative"` requests the relative (δ-type) conditional
+`error_type = "relative"` requests the relative ($\delta$-type) conditional
 error variance, and `method = "full"` selects Brennan's finite-sample
-estimator (Equations 35–36), which is the default. No bootstrap is
+estimator (Equations 35--36), which is the default. No bootstrap is
 requested, so standard errors are the closed-form analytical
 approximation.
 
@@ -109,7 +109,7 @@ together with each score group's size, cumulative frequency, and
 percentile. Reading down the `rel_full` column shows the
 characteristic concave pattern: the relative CSEM is small at the
 extremes of the score scale, rises to a maximum near the middle, and
-declines again — the same shape Brennan (1998, Figure 1d) obtained for
+declines again --- the same shape Brennan (1998, Figure 1d) obtained for
 the fitted relative SEM of a dichotomously scored test.
 
 ## Visualising: `plot()`
@@ -120,8 +120,8 @@ plot(fit)
 
 The default plot shows the per-person relative conditional SEM against
 observed score, overlaid with the fitted quadratic smooth. Additional
-layouts — comparing estimators in a single panel, side-by-side panels,
-and analytical or bootstrap confidence bands — are documented in
+layouts --- comparing estimators in a single panel, side-by-side panels,
+and analytical or bootstrap confidence bands --- are documented in
 `?plot.csem` and demonstrated in the *Examples* vignette.
 
 ## The fitted object
@@ -157,4 +157,4 @@ head(by_score(fit))
 
 Brennan, R. L. (1998). Raw-score conditional standard errors of
 measurement in generalizability theory. *Applied Psychological
-Measurement, 22*(4), 307–331.
+Measurement, 22*(4), 307--331.
