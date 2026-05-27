@@ -37,26 +37,45 @@ navbar:
 #       - intro-csem-gt
 #       - examples
 
-# La sección `reference` se completará en Sprints 2 y 3, conforme las
-# funciones y métodos se exporten. Estructura prevista:
-#
-# reference:
-#   - title: Estimation
-#     contents:
-#       - csem_gt
-#   - title: S3 class and methods
-#     contents:
-#       - new_csem
-#       - is.csem
-#       - print.csem
-#       - summary.csem
-#       - plot.csem
-#       - as.data.frame.csem
-#       - by_score
-#       - coef.csem
-#   - title: Datasets
-#     contents:
-#       - iowa_like
+reference:
+  - title: Estimation
+    desc: >
+      Per-person conditional standard error of measurement under the
+      single-facet person-by-item crossed Generalizability Theory design.
+    contents:
+      - csem_gt
+
+  - title: S3 class and methods
+    desc: >
+      The `csem` object and the methods that operate on it.
+    contents:
+      - new_csem
+      - is.csem
+      - print.csem
+      - summary.csem
+      - plot.csem
+      - as.data.frame.csem
+      - by_score
+      - coef.csem
+
+  - title: Plot palette
+    desc: >
+      Colour palette shared by `plot.csem()` and available for reuse.
+    contents:
+      - csem_palette
+
+  - title: Datasets
+    desc: >
+      Simulated illustration datasets shipped with the package.
+    contents:
+      - iowa_like
+      - ipip_like
+
+  - title: internal
+    contents:
+      - validate_csem
+      - print.summary.csem
+      - by_score.csem
 
 authors:
   René Gempp:
