@@ -8,7 +8,6 @@
 .*\.pdf$
 .*\.ado$
 .*\.sthlp$
-.*\.dta$
 .*\.do$
 ^csemR_spec.*\.md$
 ^csemGT_minispec.*\.md$
