@@ -44,7 +44,7 @@
 #' ## Relative conditional SEM, 'full' estimator (the default),
 #' ## reproducing the kind of dispersion seen in Brennan (1998),
 #' ## Figure 1b/1d.
-#' \dontrun{
+#' \donttest{
 #' fit <- csem_gt(iowa_like, error_type = "relative", method = "full")
 #' fit
 #' plot(fit)
@@ -113,7 +113,7 @@
 #' dim(ipip_like)
 #' ipip_like[1:5, 1:6]
 #'
-#' \dontrun{
+#' \donttest{
 #' fit <- csem_gt(ipip_like, error_type = "relative", method = "full",
 #'                smoother = "polynomial")
 #' fit

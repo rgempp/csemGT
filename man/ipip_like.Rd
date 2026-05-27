@@ -58,7 +58,7 @@ data(ipip_like)
 dim(ipip_like)
 ipip_like[1:5, 1:6]
 
-\dontrun{
+\donttest{
 fit <- csem_gt(ipip_like, error_type = "relative", method = "full",
                smoother = "polynomial")
 fit
