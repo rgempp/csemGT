@@ -64,8 +64,6 @@ iowa_like[1:5, 1:6]
 ## Relative conditional SEM, 'full' estimator (the default),
 ## reproducing the kind of dispersion seen in Brennan (1998),
 ## Figure 1b/1d.
-## NOTE: confirm the public signature with args(csem_gt) before
-## finalising; arguments below follow csem_gt(error_type=, method=).
 if (FALSE) { # \dontrun{
 fit <- csem_gt(iowa_like, error_type = "relative", method = "full")
 fit
