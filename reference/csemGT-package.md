@@ -35,9 +35,9 @@ Useful links:
 ## Author
 
 **Maintainer**: René Gempp <rene.gempp@udp.cl>
-([ORCID](https://orcid.org/0000-0002-0427-6894))
+([ORCID](https://orcid.org/0000-0002-0427-6894)) \[copyright holder\]
 
 Authors:
 
 - René Gempp <rene.gempp@udp.cl>
-  ([ORCID](https://orcid.org/0000-0002-0427-6894))
+  ([ORCID](https://orcid.org/0000-0002-0427-6894)) \[copyright holder\]
