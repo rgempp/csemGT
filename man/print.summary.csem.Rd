@@ -22,3 +22,4 @@ percentile, and the conditional-SEM point estimates (the `csem.*`
 columns). The sampling-variance, standard-error, confidence-interval
 and smoothed columns carried by the underlying object are not shown.
 }
+\keyword{internal}

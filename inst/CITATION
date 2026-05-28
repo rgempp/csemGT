@@ -21,3 +21,14 @@ bibentry(
   doi     = "10.1177/014662169802200401",
   header  = "Please also cite the underlying methodology:"
 )
+
+bibentry(
+  bibtype = "TechReport",
+  title   = "Analytical Sampling Variances for Per-Person Estimators of Conditional Standard Errors of Measurement in Generalizability Theory",
+  author  = person("Ren\u00e9", "Gempp"),
+  year    = "2026",
+  institution = "PsyArXiv",
+  type    = "Working paper, version 1",
+  doi     = "10.31234/osf.io/6qg9r_v1",
+  header  = "For the analytical sampling variances of the per-person estimators (return_analytical = TRUE):"
+)

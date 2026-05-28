@@ -87,9 +87,16 @@ new_csem <- function(estimates,
 #'
 #' @param x Any R object.
 #' @return `TRUE` if `x` inherits from `"csem"`, `FALSE` otherwise.
+#'
+#' @examples
+#' set.seed(1)
+#' d <- matrix(rbinom(80 * 15, 1, 0.5), nrow = 80)
+#' fit <- suppressMessages(csem_gt(d, error_type = "absolute"))
+#' is.csem(fit)
+#' is.csem(list())
+#'
 #' @export
 is.csem <- function(x) inherits(x, "csem")
-
 
 #' Validate a `csem` object
 #'

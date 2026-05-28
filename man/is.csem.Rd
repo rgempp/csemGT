@@ -15,3 +15,11 @@ is.csem(x)
 \description{
 Test whether an object is a `csem` object
 }
+\examples{
+set.seed(1)
+d <- matrix(rbinom(80 * 15, 1, 0.5), nrow = 80)
+fit <- suppressMessages(csem_gt(d, error_type = "absolute"))
+is.csem(fit)
+is.csem(list())
+
+}

@@ -124,6 +124,7 @@ summary.csem <- function(object, ...) {
 #'
 #' @return `x`, invisibly.
 #'
+#' @keywords internal
 #' @export
 print.summary.csem <- function(x, ...) {
 

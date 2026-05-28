@@ -135,10 +135,11 @@ smoothing, and D-study extrapolation.
 }
 \details{
 The analytical standard errors returned in the `se.analytic.*` columns
-are **original contributions of the csemGT package**; they are not
-derived in Brennan (1998), which focuses on the point estimators. Users
-requiring fully verified inferential coverage should prefer the
-bootstrap standard errors (`bootstrap = TRUE`).
+are **original contributions of the csemGT package** (derived in
+Gempp, 2026); they are not derived in Brennan (1998), which focuses
+on the point estimators. Users requiring fully verified inferential
+coverage should prefer the bootstrap standard errors
+(`bootstrap = TRUE`).
 
 The `relative_uncorrelated` estimator is the per-person absolute error
 variance minus `sigma^2(i)/I`. When `sigma^2(Delta_p) < sigma^2(i)/I`
@@ -162,4 +163,10 @@ fit$variance_components$reliability_coefficients
 Brennan, R. L. (1998). Raw-score conditional standard errors of
   measurement in generalizability theory. Applied Psychological
   Measurement, 22(4), 307-331.
+  \doi{10.1177/014662169802200401}
+
+Gempp, R. (2026). Analytical sampling variances for per-person
+  estimators of conditional standard errors of measurement in
+  Generalizability Theory. PsyArXiv working paper.
+  \doi{10.31234/osf.io/6qg9r_v1}
 }
