@@ -2,8 +2,8 @@
 
 ## Authors
 
-- **[René Gempp](https://gempp.cl)**. Author, maintainer.
-  [](https://orcid.org/0000-0002-0427-6894)
+- **[René Gempp](https://gempp.cl)**. Author, maintainer, copyright
+  holder. [](https://orcid.org/0000-0002-0427-6894)
 
 ## Citation
 
