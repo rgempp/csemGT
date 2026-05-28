@@ -38,11 +38,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: René Gempp \email{rene.gempp@udp.cl} (\href{https://orcid.org/0000-0002-0427-6894}{ORCID})
+\strong{Maintainer}: René Gempp \email{rene.gempp@udp.cl} (\href{https://orcid.org/0000-0002-0427-6894}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
-  \item René Gempp \email{rene.gempp@udp.cl} (\href{https://orcid.org/0000-0002-0427-6894}{ORCID})
+  \item René Gempp \email{rene.gempp@udp.cl} (\href{https://orcid.org/0000-0002-0427-6894}{ORCID}) [copyright holder]
 }
 
 }
