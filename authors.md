@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/rgempp/csemGT/blob/master/inst/CITATION)
+[`inst/CITATION`](https://github.com/rgempp/csemGT/blob/v1.0.0/inst/CITATION)
 
 Gempp R (2026). *csemGT: Conditional Standard Error of Measurement in
 Generalizability Theory*. R package version 1.0.0,
