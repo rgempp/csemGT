@@ -239,10 +239,11 @@ is not supported for the GT paradigm.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The analytical standard errors returned in the `se.analytic.*` columns
-are **original contributions of the csemGT package**; they are not
-derived in Brennan (1998), which focuses on the point estimators. Users
-requiring fully verified inferential coverage should prefer the
-bootstrap standard errors (`bootstrap = TRUE`).</p>
+are **original contributions of the csemGT package** (derived in
+Gempp, 2026); they are not derived in Brennan (1998), which focuses
+on the point estimators. Users requiring fully verified inferential
+coverage should prefer the bootstrap standard errors
+(`bootstrap = TRUE`).</p>
 <p>The `relative_uncorrelated` estimator is the per-person absolute error
 variance minus `sigma^2(i)/I`. When `sigma^2(Delta_p) &lt; sigma^2(i)/I`
 the estimated relative error variance is negative and, under the
@@ -257,7 +258,12 @@ no non-negative variance, typically the extreme scores. Set
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Brennan, R. L. (1998). Raw-score conditional standard errors of
   measurement in generalizability theory. Applied Psychological
-  Measurement, 22(4), 307-331.</p>
+  Measurement, 22(4), 307-331.
+  <a href="https://doi.org/10.1177/014662169802200401" class="external-link">doi:10.1177/014662169802200401</a></p>
+<p>Gempp, R. (2026). Analytical sampling variances for per-person
+  estimators of conditional standard errors of measurement in
+  Generalizability Theory. PsyArXiv working paper.
+  <a href="https://doi.org/10.31234/osf.io/6qg9r_v1" class="external-link">doi:10.31234/osf.io/6qg9r_v1</a></p>
     </div>
 
     <div class="section level2">

@@ -37,3 +37,17 @@ in generalizability theory.” *Applied Psychological Measurement*,
       pages = {307--331},
       doi = {10.1177/014662169802200401},
     }
+
+Gempp R (2026). “Analytical Sampling Variances for Per-Person Estimators
+of Conditional Standard Errors of Measurement in Generalizability
+Theory.” PsyArXiv.
+[doi:10.31234/osf.io/6qg9r_v1](https://doi.org/10.31234/osf.io/6qg9r_v1).
+
+    @TechReport{,
+      title = {Analytical Sampling Variances for Per-Person Estimators of Conditional Standard Errors of Measurement in Generalizability Theory},
+      author = {René Gempp},
+      year = {2026},
+      institution = {PsyArXiv},
+      type = {Working paper, version 1},
+      doi = {10.31234/osf.io/6qg9r_v1},
+    }
