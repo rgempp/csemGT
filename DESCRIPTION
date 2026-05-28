@@ -4,7 +4,7 @@ Title: Conditional Standard Error of Measurement in Generalizability Theory
 Version: 1.0.0
 Authors@R: c(
     person("Ren\u00e9", "Gempp", email = "rene.gempp@udp.cl",
-           role = c("aut", "cre"),
+           role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-0427-6894"))
   )
 Description: Estimates the per-person conditional standard error of
